@@ -12,7 +12,7 @@ class AtletaController extends Controller
      */
     public function index()
     {
-        //
+        return Atleta::all();
     }
 
     /**
