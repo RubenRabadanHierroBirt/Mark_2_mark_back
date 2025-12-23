@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+
+    protected $table = 'usuarios';
+
+    protected $primaryKey = 'id';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'username',
+        'email',
+        'password',
+        'rol'
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * Relación con Athlete
+     */
+    public function athlete()
+    {
+        return $this->hasOne(Athlete::class, 'id_usuario');
+    }
+
+    /**
+     * Relación con Club
+     */
+    public function club()
+    {
+        return $this->hasOne(Club::class, 'id_usuario');
+    }
+}
