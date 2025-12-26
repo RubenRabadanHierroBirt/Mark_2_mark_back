@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Athlete;
-use App\DTOs\AthleteDTO;
+use App\DTOs\Athlete\AthleteDTO;
 
 class AthleteController extends Controller
 {

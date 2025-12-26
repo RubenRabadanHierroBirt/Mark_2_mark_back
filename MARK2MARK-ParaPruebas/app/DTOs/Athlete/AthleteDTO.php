@@ -1,5 +1,5 @@
 <?php
-namespace App\DTOs;
+namespace App\DTOs\Athlete;
 
 use App\Models\Athlete;
 use JsonSerializable;
@@ -26,33 +26,17 @@ class AthleteDTO implements JsonSerializable {
         $this->fecha_nacimiento = $athlete->fecha_nacimiento;
         $this->status = $athlete->status;
 
-        // Usuario → solo username
+        
         $this->username = $athlete->relationLoaded('user') && $athlete->user
             ? $athlete->user->username
             : null;
 
-        // Club → solo nombre
+        
         $this->club = $athlete->relationLoaded('club') && $athlete->club
             ? $athlete->club->name
             : null;
     }
 
-
-/*    private $nombre;
-    private $apellido;
-    private $prueba;
-    private $marca;
-    private $nombre_club;
-
-    public function __construct(Athlete $atleta)
-    {
-        $this->nombre = $atleta->nombre;
-        $this->apellido = $atleta->apellido;
-        $this->prueba = $atleta->prueba;
-        $this->marca = $atleta->marca;
-        $this->nombre_club = $atleta->club->nombre_club;
-    }
-*/
     public function jsonSerialize(): mixed
     {
         return get_object_vars($this);

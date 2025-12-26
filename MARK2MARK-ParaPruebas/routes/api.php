@@ -19,6 +19,10 @@ Route::post('admin/atletas', [AthleteController::class, 'create']);
 Route::put('admin/atletas/{id}', [AthleteController::class, 'update']);
 Route::delete('admin/atletas/{id}', [AthleteController::class, 'delete']);
 
+// Route::get('/admin/clubes', function () {
+//     return response()->json(['message' => 'clubes OK']);
+// });
+
 Route::get('admin/clubes', [ClubController::class, 'getAll']);
 Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);
 Route::post('admin/clubes', [ClubController::class, 'create']);
@@ -36,3 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/competitions/{id}', [CompetitionController::class, 'destroy']);
 });
 Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);
+
+Route::get('/ping', function () {
+    return response()->json(['message' => 'API OK']);
+});
