@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AthleteController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CompetitionController;
 use App\Models\Club;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+Route::post('login', [AuthController::class, 'login']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -43,4 +46,8 @@ Route::get('/calendar/competitions', [CompetitionController::class, 'calendar'])
 
 Route::get('/ping', function () {
     return response()->json(['message' => 'API OK']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
 });
