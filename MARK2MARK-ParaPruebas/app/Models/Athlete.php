@@ -35,9 +35,11 @@ class Athlete extends Model
     }
 
     public function results()
-{
-    return $this->hasMany(Results::class, 'id_atleta');
+    {
+        return $this->hasMany(Results::class, 'id_atleta');
+    }
+    public function registrations()
+    {
+        return $this->hasMany(AthleteRegistration::class, 'id_atleta');
+    }
 }
-
-}
-
