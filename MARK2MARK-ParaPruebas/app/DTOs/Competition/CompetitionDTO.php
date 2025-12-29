@@ -5,7 +5,7 @@ namespace App\DTOs\Competition;
 use JsonSerializable;
 use Carbon\Carbon;
 
-class CompetitionResponseDTO
+class CompetitionDTO
 {
     public function __construct(
         public int $id,

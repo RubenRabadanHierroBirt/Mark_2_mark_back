@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Models\AthleteRegistration;
-use App\DTOs\Competition\CompetitionResponseDTO;
+use App\DTOs\Competition\CompetitionDTO;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Athlete;
 use App\DTOs\Athlete\AthleteDTO;
+use App\Http\Requests\CreateAthleteRequest;
 
 class AthleteController extends Controller
 {
@@ -22,13 +23,13 @@ class AthleteController extends Controller
         }
 
         if ($dtosAtletas) {
-            $status = 'SUCCES';
+            $status = 'SUCCESS';
             $cod = 200;
             $mensaje = 'Contenido mostrado correctamente';
 
             return $this->sendResponse($status, $cod, $mensaje, $dtosAtletas);
         } else {
-            $status = 'NO SUCCES';
+            $status = 'NO SUCCESS';
             $cod = 404;
             $mensaje = 'Error al acceder al contenido';
 
@@ -41,13 +42,13 @@ class AthleteController extends Controller
         $atleta = Athlete::with('club')->find($id);
 
         if ($atleta) {
-            $status = 'SUCCES';
+            $status = 'SUCCESS';
             $cod = 200;
             $mensaje = 'Elemento mostrado correctamente';
 
             return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
         } else {
-            $status = 'NO SUCCES';
+            $status = 'NO SUCCESS';
             $cod = 404;
             $mensaje = 'Error al acceder al elemento';
 
@@ -56,18 +57,18 @@ class AthleteController extends Controller
     }
 
 
-    public function create(Request $request)
+    public function create(CreateAthleteRequest $request)
     {
-        $atleta = Athlete::create($request->all());
+        $atleta = Athlete::create($request->validated());
 
         if ($atleta) {
-            $status = 'SUCCES';
-            $cod = 200;
+            $status = 'SUCCESS';
+            $cod = 201;
             $mensaje = 'Elemento creado correctamente';
 
             return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
         } else {
-            $status = 'NO SUCCES';
+            $status = 'NO SUCCESS';
             $cod = 404;
             $mensaje = 'Error al crear el elemento';
 
@@ -82,13 +83,13 @@ class AthleteController extends Controller
         if ($atleta) {
             $atleta->update($request->all());
 
-            $status = 'SUCCES';
+            $status = 'SUCCESS';
             $cod = 200;
             $mensaje = 'Elemento con ID ' . $id . ' actualizado correctamente';
 
             return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
         } else {
-            $status = 'NO SUCCES';
+            $status = 'NO SUCCESS';
             $cod = 404;
             $mensaje = 'Error al actualizar el contenido';
 
@@ -103,13 +104,13 @@ class AthleteController extends Controller
         if ($atleta) {
             $atleta->delete();
 
-            $status = 'SUCCES';
+            $status = 'SUCCESS';
             $cod = 200;
             $mensaje = 'El siguiente elemento se ha eliminado correctamente';
 
             return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
         } else {
-            $status = 'NO SUCCES';
+            $status = 'NO SUCCESS';
             $cod = 404;
             $mensaje = 'Error al eliminar el elemento';
 
@@ -196,7 +197,7 @@ class AthleteController extends Controller
             }),
             // Formatear Próximos usando tu DTO existente
             'proximos_campeonatos' => $proximosCampeonatos->values()->map(function ($reg) {
-                return \App\DTOs\Competition\CompetitionResponseDTO::fromModel($reg->competition);
+                return \App\DTOs\Competition\CompetitionDTO::fromModel($reg->competition);
             })
         ];
 
