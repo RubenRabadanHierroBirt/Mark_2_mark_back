@@ -21,15 +21,18 @@ class Competition extends Model
         'fecha',
         'organizador',
         'status',
-        'fecha_inicio',
-        'fecha_fin',
-        'revisado_federacion'
+        'fecha',
+        // 'fecha_inicio',
+        // 'fecha_fin',
+        'revisado_federacion',
+        //'creado_el'
     ];
 
     
     protected $casts = [
         'fecha' => 'date',
         'revisado_federacion' => 'boolean',
+        //'creado_el' => 'datetime'
     ];
 
     

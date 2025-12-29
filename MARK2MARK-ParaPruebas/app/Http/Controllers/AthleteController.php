@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\Athlete;
 use App\DTOs\Athlete\AthleteDTO;
 use App\Http\Requests\CreateAthleteRequest;
+use App\Http\Requests\UpdateAthleteRequest;
 
 class AthleteController extends Controller
 {
@@ -76,12 +77,12 @@ class AthleteController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateAthleteRequest $request, $id)
     {
         $atleta = Athlete::find($id);
 
         if ($atleta) {
-            $atleta->update($request->all());
+            $atleta->update($request->validated());
 
             $status = 'SUCCESS';
             $cod = 200;
@@ -91,7 +92,7 @@ class AthleteController extends Controller
         } else {
             $status = 'NO SUCCESS';
             $cod = 404;
-            $mensaje = 'Error al actualizar el contenido';
+            $mensaje = 'Atleta no encontrado';
 
             return $this->sendResponse($status, $cod, $mensaje, null);
         }
@@ -197,7 +198,8 @@ class AthleteController extends Controller
             }),
             // Formatear Próximos usando tu DTO existente
             'proximos_campeonatos' => $proximosCampeonatos->values()->map(function ($reg) {
-                return \App\DTOs\Competition\CompetitionDTO::fromModel($reg->competition);
+                //return \App\DTOs\Competition\CompetitionDTO::fromModel($reg->competition);
+                return new \App\DTOs\Competition\CompetitionDTO($reg->competition);
             })
         ];
 
