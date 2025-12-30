@@ -4,6 +4,7 @@ use App\Http\Controllers\AthleteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CompetitionController;
+use App\Http\Controllers\NewsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
     Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
 });
+
+
+
+// ENDPOINTS NEWS
+
+Route::get('/noticias', [NewsController::class, 'getAll']);
+Route::get('/noticias/{id}', [NewsController::class, 'getById']);
+Route::get('/admin/noticias', [NewsController::class, 'getAll']);
+Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/admin/noticias', [NewsController::class, 'create']);
+    Route::put('/admin/noticias/{id}', [NewsController::class, 'update']);
+    Route::delete('/admin/noticias/{id}', [NewsController::class, 'delete']);
+});
+
 
 
 
