@@ -20,12 +20,12 @@ Route::get('/user', function (Request $request) {
 
 // ENDPOINTS ATLETAS
 
-Route::get('admin/atletas', [AthleteController::class, 'getAll']);
 Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);
 // Route::post('admin/atletas', [AthleteController::class, 'create']);
 // Route::put('admin/atletas/{id}', [AthleteController::class, 'update']);
 // Route::delete('admin/atletas/{id}', [AthleteController::class, 'delete']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('admin/atletas', [AthleteController::class, 'getAll']);
     Route::post('/admin/atletas', [AthleteController::class, 'create']);
     Route::put('/admin/atletas/{id}', [AthleteController::class, 'update']);
     Route::delete('/admin/atletas/{id}', [AthleteController::class, 'delete']);

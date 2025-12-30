@@ -14,9 +14,34 @@ use App\Http\Requests\UpdateAthleteRequest;
 
 class AthleteController extends Controller
 {
-    public function getAll()
+    // PRUEBA PARA QUE  GETALL DEPENDIENDO DEL ROL MUESTRA TODOS O SOLO LOS DEL CLUB
+    // Si funciona hay que meter control de middleware en el endpoint para controlar que solo accedan roles fed y club. Si no puede tirar error. Lo pongo aqui para no olvidarme
+    public function getAll(Request $request)
     {
-        $atletas = Athlete::with('club')->get();
+        $user = $request->user();
+
+        if ($user->rol === 'FEDERACION') {
+            $atletas = Athlete::with('club')->get();
+        } 
+        elseif($user->rol === 'CLUB') {
+            
+            $club = $user->club;
+
+            if (!$club) {
+            return $this->sendResponse(
+                'NO SUCCESS',
+                404,
+                'El usuario no tiene club asociado',
+                null
+            );
+        }
+
+            $atletas = Athlete::with('club')
+                ->where('club_actual_id', $club->id)
+                ->get();
+        }
+
+
         $dtosAtletas = [];
 
         foreach ($atletas as $atleta) {
@@ -37,6 +62,31 @@ class AthleteController extends Controller
             return $this->sendResponse($status, $cod, $mensaje, null);
         }
     }
+
+    //////////////////////////////////////////////////// BACKUP DE GETALL SIMPLE
+    // public function getAll()
+    // {
+    //     $atletas = Athlete::with('club')->get();
+    //     $dtosAtletas = [];
+
+    //     foreach ($atletas as $atleta) {
+    //         $dtosAtletas[] = new AthleteDTO($atleta);
+    //     }
+
+    //     if ($dtosAtletas) {
+    //         $status = 'SUCCESS';
+    //         $cod = 200;
+    //         $mensaje = 'Contenido mostrado correctamente';
+
+    //         return $this->sendResponse($status, $cod, $mensaje, $dtosAtletas);
+    //     } else {
+    //         $status = 'NO SUCCESS';
+    //         $cod = 404;
+    //         $mensaje = 'Error al acceder al contenido';
+
+    //         return $this->sendResponse($status, $cod, $mensaje, null);
+    //     }
+    // }
 
     public function getById($id)
     {
