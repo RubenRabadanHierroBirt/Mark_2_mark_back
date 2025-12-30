@@ -8,58 +8,66 @@ use Illuminate\Http\Request;
 class RegistrosAtletumController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de todos los registros de atletas en competiciones.
      */
     public function index()
     {
-        //
+        return RegistrosAtletum::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda un nuevo registro de atleta para una competición.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_competicion' => 'required|integer|exists:competiciones,id',
+            'id_atleta' => 'required|integer|exists:atletas,id',
+            'id_club' => 'required|integer|exists:clubs,id',
+            'tipo_evento' => 'nullable|string|max:100',
+            'dorsal' => 'nullable|integer',
+            'fecha_inscripcion' => 'nullable|date',
+        ]);
+
+        $registroAtletum = RegistrosAtletum::create($validatedData);
+
+        return response()->json($registroAtletum, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un registro de atleta específico.
      */
     public function show(RegistrosAtletum $registrosAtletum)
     {
-        //
+        return $registrosAtletum;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RegistrosAtletum $registrosAtletum)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza un registro de atleta existente en la base de datos.
      */
     public function update(Request $request, RegistrosAtletum $registrosAtletum)
     {
-        //
+        $validatedData = $request->validate([
+            'id_competicion' => 'sometimes|required|integer|exists:competiciones,id',
+            'id_atleta' => 'sometimes|required|integer|exists:atletas,id',
+            'id_club' => 'sometimes|required|integer|exists:clubs,id',
+            'tipo_evento' => 'nullable|string|max:100',
+            'dorsal' => 'nullable|integer',
+            'fecha_inscripcion' => 'nullable|date',
+        ]);
+
+        $registrosAtletum->update($validatedData);
+
+        return response()->json($registrosAtletum, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un registro de atleta de la base de datos.
      */
     public function destroy(RegistrosAtletum $registrosAtletum)
     {
-        //
+        $registrosAtletum->delete();
+
+        return response()->json(null, 204);
     }
 }

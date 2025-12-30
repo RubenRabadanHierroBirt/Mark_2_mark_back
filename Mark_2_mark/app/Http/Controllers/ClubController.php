@@ -8,58 +8,72 @@ use Illuminate\Http\Request;
 class ClubController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de todos los clubes.
      */
     public function index()
     {
-        //
+        return Club::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda un nuevo club en la base de datos.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_usuario' => 'nullable|integer|exists:usuarios,id',
+            'code' => 'required|string|max:255|unique:clubs,code',
+            'name' => 'required|string|max:255',
+            'direccion' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:50',
+            'responsable' => 'nullable|string|max:255',
+            'estado' => 'nullable|string|max:50',
+            'codigo_postal' => 'nullable|integer',
+            'localidad' => 'nullable|string|max:100',
+        ]);
+
+        $club = Club::create($validatedData);
+
+        return response()->json($club, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un club específico.
      */
     public function show(Club $club)
     {
-        //
+        return $club;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Club $club)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza un club existente en la base de datos.
      */
     public function update(Request $request, Club $club)
     {
-        //
+        $validatedData = $request->validate([
+            'id_usuario' => 'nullable|integer|exists:usuarios,id',
+            'code' => 'sometimes|required|string|max:255|unique:clubs,code,' . $club->id,
+            'name' => 'sometimes|required|string|max:255',
+            'direccion' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:50',
+            'responsable' => 'nullable|string|max:255',
+            'estado' => 'nullable|string|max:50',
+            'codigo_postal' => 'nullable|integer',
+            'localidad' => 'nullable|string|max:100',
+        ]);
+
+        $club->update($validatedData);
+
+        return response()->json($club, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un club de la base de datos.
      */
     public function destroy(Club $club)
     {
-        //
+        $club->delete();
+
+        return response()->json(null, 204);
     }
 }

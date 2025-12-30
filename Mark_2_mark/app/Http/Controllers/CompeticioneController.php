@@ -8,58 +8,74 @@ use Illuminate\Http\Request;
 class CompeticioneController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de todas las competiciones.
      */
     public function index()
     {
-        //
+        return Competicione::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda una nueva competición en la base de datos.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'sede' => 'nullable|string|max:255',
+            'fecha' => 'required|date',
+            'organizador' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:50',
+            'revisado_federacion' => 'nullable|boolean',
+            'creado_el' => 'nullable|date',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'fecha_limite' => 'nullable|date',
+        ]);
+
+        $competicione = Competicione::create($validatedData);
+
+        return response()->json($competicione, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de una competición específica.
      */
     public function show(Competicione $competicione)
     {
-        //
+        return $competicione;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Competicione $competicione)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza una competición existente en la base de datos.
      */
     public function update(Request $request, Competicione $competicione)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'sede' => 'nullable|string|max:255',
+            'fecha' => 'sometimes|required|date',
+            'organizador' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:50',
+            'revisado_federacion' => 'nullable|boolean',
+            'creado_el' => 'nullable|date',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'fecha_limite' => 'nullable|date',
+        ]);
+
+        $competicione->update($validatedData);
+
+        return response()->json($competicione, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una competición de la base de datos.
      */
     public function destroy(Competicione $competicione)
     {
-        //
+        $competicione->delete();
+
+        return response()->json(null, 204);
     }
 }

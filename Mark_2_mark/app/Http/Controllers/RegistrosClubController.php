@@ -8,58 +8,60 @@ use Illuminate\Http\Request;
 class RegistrosClubController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de todos los registros de clubes en competiciones.
      */
     public function index()
     {
-        //
+        return RegistrosClub::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda un nuevo registro de club para una competición.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_competicion' => 'required|integer|exists:competiciones,id',
+            'id_club' => 'required|integer|exists:clubs,id',
+            'fecha_registro' => 'nullable|date',
+        ]);
+
+        $registrosClub = RegistrosClub::create($validatedData);
+
+        return response()->json($registrosClub, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de un registro de club específico.
      */
     public function show(RegistrosClub $registrosClub)
     {
-        //
+        return $registrosClub;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RegistrosClub $registrosClub)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza un registro de club existente en la base de datos.
      */
     public function update(Request $request, RegistrosClub $registrosClub)
     {
-        //
+        $validatedData = $request->validate([
+            'id_competicion' => 'sometimes|required|integer|exists:competiciones,id',
+            'id_club' => 'sometimes|required|integer|exists:clubs,id',
+            'fecha_registro' => 'nullable|date',
+        ]);
+
+        $registrosClub->update($validatedData);
+
+        return response()->json($registrosClub, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina un registro de club de la base de datos.
      */
     public function destroy(RegistrosClub $registrosClub)
     {
-        //
+        $registrosClub->delete();
+
+        return response()->json(null, 204);
     }
 }

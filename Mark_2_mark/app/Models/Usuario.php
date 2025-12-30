@@ -46,7 +46,8 @@ class Usuario extends Model
 		'email',
 		'rol',
 		'creado_el',
-		'desactivado'
+		'desactivado',
+		'imagen'
 	];
 
 	public function atletas()

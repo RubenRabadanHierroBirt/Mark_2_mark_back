@@ -8,58 +8,60 @@ use Illuminate\Http\Request;
 class NovedadeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de todas las novedades.
      */
     public function index()
     {
-        //
+        return Novedade::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda una nueva novedad en la base de datos.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'fecha' => 'required|date',
+            'contenido' => 'required|string',
+            'tipo' => 'required|string|max:50',
+        ]);
+
+        $novedade = Novedade::create($validatedData);
+
+        return response()->json($novedade, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de una novedad específica.
      */
     public function show(Novedade $novedade)
     {
-        //
+        return $novedade;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Novedade $novedade)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza una novedad existente en la base de datos.
      */
     public function update(Request $request, Novedade $novedade)
     {
-        //
+        $validatedData = $request->validate([
+            'fecha' => 'sometimes|required|date',
+            'contenido' => 'sometimes|required|string',
+            'tipo' => 'sometimes|required|string|max:50',
+        ]);
+
+        $novedade->update($validatedData);
+
+        return response()->json($novedade, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una novedad de la base de datos.
      */
     public function destroy(Novedade $novedade)
     {
-        //
+        $novedade->delete();
+
+        return response()->json(null, 204);
     }
 }

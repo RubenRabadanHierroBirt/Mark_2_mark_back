@@ -8,58 +8,62 @@ use Illuminate\Http\Request;
 class AtletaClubController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Muestra una lista de las relaciones entre atletas y clubes.
      */
     public function index()
     {
-        //
+        return AtletaClub::all();
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+     * Guarda una nueva relación entre atleta y club.
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'id_atleta' => 'required|integer|exists:atletas,id',
+            'id_club' => 'required|integer|exists:clubs,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+        ]);
+
+        $atletaClub = AtletaClub::create($validatedData);
+
+        return response()->json($atletaClub, 201);
     }
 
     /**
-     * Display the specified resource.
+     * Muestra los detalles de una relación específica entre atleta y club.
      */
     public function show(AtletaClub $atletaClub)
     {
-        //
+        return $atletaClub;
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AtletaClub $atletaClub)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Actualiza una relación existente entre atleta y club.
      */
     public function update(Request $request, AtletaClub $atletaClub)
     {
-        //
+        $validatedData = $request->validate([
+            'id_atleta' => 'sometimes|required|integer|exists:atletas,id',
+            'id_club' => 'sometimes|required|integer|exists:clubs,id',
+            'fecha_inicio' => 'sometimes|required|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+        ]);
+
+        $atletaClub->update($validatedData);
+
+        return response()->json($atletaClub, 200);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina una relación entre atleta y club de la base de datos.
      */
     public function destroy(AtletaClub $atletaClub)
     {
-        //
+        $atletaClub->delete();
+
+        return response()->json(null, 204);
     }
 }
