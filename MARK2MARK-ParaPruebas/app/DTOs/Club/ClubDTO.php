@@ -10,7 +10,9 @@ class ClubDTO implements JsonSerializable
     public int $id;
     public string $code;
     public string $name;
+    public ?string $email;
     public ?string $direccion;
+    public ?string $fotoUrl;
     public ?string $telefono;
     public ?string $responsable;
     public ?string $localidad;
@@ -22,8 +24,9 @@ class ClubDTO implements JsonSerializable
     public function __construct(Club $club)
     {
         $this->id = $club->id;
-        $this->code = $club->code;
+        $this->code = $club->code ?? '';
         $this->name = $club->name;
+        $this->email = $club->email;
         $this->direccion = $club->direccion;
         $this->telefono = $club->telefono;
         $this->responsable = $club->responsable;

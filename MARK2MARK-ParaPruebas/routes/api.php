@@ -40,6 +40,7 @@ Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);
 Route::post('admin/clubes', [ClubController::class, 'create']);
 Route::put('admin/clubes/{id}', [ClubController::class, 'update']);
 Route::delete('admin/clubes/{id}', [ClubController::class, 'delete']);
+Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
 // Route::get('/admin/clubes', function () {        return response()->json(['message' => 'clubes OK']);         });
 
 

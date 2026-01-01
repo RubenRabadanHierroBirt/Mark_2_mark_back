@@ -14,6 +14,7 @@ class Club extends Model
         'id_usuario',
         'code',
         'name',
+        'email',
         'direccion',
         'telefono',
         'responsable',
