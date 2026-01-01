@@ -85,7 +85,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/results', [ResultsController::class, 'getAll']);
 Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // Por si la necesitas luego
 
-
+//Para todos los usuarios 
+Route::get('/competitions', [CompetitionController::class, 'getAll']);
 // ENDPOINT PRUEBA PING
 Route::get('/ping', function () {
     return response()->json(['message' => 'API OK']);
