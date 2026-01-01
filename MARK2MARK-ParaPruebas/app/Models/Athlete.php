@@ -17,7 +17,8 @@ class Athlete extends Model
         'email',
         'telefono',
         'fecha_nacimiento',
-        'status'
+        'status',
+        'sexo'
     ];
 
     protected $casts = [
