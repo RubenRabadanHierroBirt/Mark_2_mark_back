@@ -4,6 +4,7 @@ use App\Http\Controllers\AthleteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CompetitionController;
+use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\NewsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -80,6 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
 });
 
+// ENDPOINTS RESULTADOS (CLASIFICACIONES)
+Route::get('/results', [ResultsController::class, 'getAll']);
+Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // Por si la necesitas luego
 
 
 // ENDPOINT PRUEBA PING

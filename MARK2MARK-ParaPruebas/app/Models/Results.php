@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Competition;
+use App\Models\Athlete;
 
 class Results extends Model
 {
