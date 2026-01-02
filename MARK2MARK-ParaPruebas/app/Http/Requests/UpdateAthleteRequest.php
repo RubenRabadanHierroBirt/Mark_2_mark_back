@@ -21,6 +21,7 @@ class UpdateAthleteRequest extends FormRequest
             'telefono' => 'sometimes|nullable|string|max:20',
             'fecha_nacimiento' => 'sometimes|nullable|date',
             'status' => 'sometimes|nullable|in:Activo,Pendiente,Suspendido',
+            'sexo' => 'sometimes|nullable|in:M,F',
             'club_actual_id' => 'sometimes|nullable|exists:clubs,id',
         ];
     }

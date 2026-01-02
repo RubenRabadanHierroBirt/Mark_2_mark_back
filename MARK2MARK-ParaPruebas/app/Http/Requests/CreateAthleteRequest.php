@@ -22,6 +22,7 @@ class CreateAthleteRequest extends FormRequest
             'telefono' => 'nullable|string|max:20',
             'fecha_nacimiento' => 'nullable|date',
             'status' => 'nullable|in:Activo,Pendiente,Suspendido',
+            'sexo' => 'nullable|in:F,M',
             'username' => 'sometimes|string|max:50|unique:usuarios,username',
             'usuario' => 'sometimes|string|max:50|unique:usuarios,username',
             'password' => 'sometimes|string|min:6|max:255',
