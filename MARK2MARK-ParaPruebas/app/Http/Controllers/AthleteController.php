@@ -12,6 +12,7 @@ use App\DTOs\Competition\CompetitionDTO;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Athlete;
+use App\Models\Club;
 use App\Models\User;
 use App\DTOs\Athlete\AthleteDTO;
 use App\Http\Requests\CreateAthleteRequest;
@@ -26,7 +27,9 @@ class AthleteController extends Controller
         $user = $request->user();
 
         if ($user->rol === 'FEDERACION') {
-            $atletas = Athlete::with(['club', 'user'])->get();
+            $atletas = Athlete::with(['club', 'user'])
+                ->where('id_usuario', '!=', 1)
+                ->get();
         } 
         elseif($user->rol === 'CLUB') {
             
@@ -43,6 +46,7 @@ class AthleteController extends Controller
 
             $atletas = Athlete::with(['club', 'user'])
                 ->where('club_actual_id', $club->id)
+                ->where('id_usuario', '!=', 1)
                 ->get();
         }
 
@@ -142,6 +146,17 @@ class AthleteController extends Controller
                 $userId = $user->id;
             }
 
+            $clubId = $data['club_actual_id'] ?? null;
+            if (!$clubId) {
+                $clubNombre = $request->input('club_nombre') ?? $request->input('club');
+                if ($clubNombre) {
+                    $club = Club::where('name', $clubNombre)->first();
+                    if ($club) {
+                        $data['club_actual_id'] = $club->id;
+                    }
+                }
+            }
+
             $data['id_usuario'] = $userId;
             $atleta = Athlete::create($data);
 
@@ -163,11 +178,19 @@ class AthleteController extends Controller
         $atleta = Athlete::find($id);
 
         if ($atleta) {
-            $atleta->update($request->validated());
+            $data = $request->validated();
+            $atleta->update($data);
+
+            if (array_key_exists('status', $data) && $atleta->user) {
+                $desactivado = $data['status'] === 'Suspendido';
+                $atleta->user->forceFill(['desactivado' => $desactivado])->save();
+            }
 
             $status = 'SUCCESS';
             $cod = 200;
             $mensaje = 'Elemento con ID ' . $id . ' actualizado correctamente';
+
+            $atleta->load(['user', 'club']);
 
             return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
         } else {
@@ -181,23 +204,26 @@ class AthleteController extends Controller
 
     public function delete($id)
     {
-        $atleta = Athlete::find($id);
+        $atleta = Athlete::with('user')->find($id);
 
-        if ($atleta) {
-            $atleta->delete();
-
-            $status = 'SUCCESS';
-            $cod = 200;
-            $mensaje = 'El siguiente elemento se ha eliminado correctamente';
-
-            return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
-        } else {
-            $status = 'NO SUCCESS';
-            $cod = 404;
-            $mensaje = 'Error al eliminar el elemento';
-
-            return $this->sendResponse($status, $cod, $mensaje, null);
+        if (!$atleta) {
+            return $this->sendResponse('NO SUCCESS', 404, 'Error al eliminar el elemento', null);
         }
+
+        return DB::transaction(function () use ($atleta) {
+            $user = $atleta->user;
+            $atleta->delete();
+            if ($user) {
+                $user->delete();
+            }
+
+            return $this->sendResponse(
+                'SUCCESS',
+                200,
+                'El siguiente elemento se ha eliminado correctamente',
+                new AthleteDTO($atleta)
+            );
+        });
     }
 
     public function sendResponse($status, $cod, $mensaje, $data)
