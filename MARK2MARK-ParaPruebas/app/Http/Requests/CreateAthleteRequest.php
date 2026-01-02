@@ -25,6 +25,7 @@ class CreateAthleteRequest extends FormRequest
             'username' => 'sometimes|string|max:50|unique:usuarios,username',
             'usuario' => 'sometimes|string|max:50|unique:usuarios,username',
             'password' => 'sometimes|string|min:6|max:255',
+            'club_nombre' => 'sometimes|string|max:100',
         ];
     }
 }
