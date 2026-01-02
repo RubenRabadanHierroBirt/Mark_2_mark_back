@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\Models\AthleteRegistration;
 use App\DTOs\Competition\CompetitionDTO;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Athlete;
+use App\Models\User;
 use App\DTOs\Athlete\AthleteDTO;
 use App\Http\Requests\CreateAthleteRequest;
 use App\Http\Requests\UpdateAthleteRequest;
@@ -21,7 +24,7 @@ class AthleteController extends Controller
         $user = $request->user();
 
         if ($user->rol === 'FEDERACION') {
-            $atletas = Athlete::with('club')->get();
+            $atletas = Athlete::with(['club', 'user'])->get();
         } 
         elseif($user->rol === 'CLUB') {
             
@@ -36,7 +39,7 @@ class AthleteController extends Controller
             );
         }
 
-            $atletas = Athlete::with('club')
+            $atletas = Athlete::with(['club', 'user'])
                 ->where('club_actual_id', $club->id)
                 ->get();
         }
@@ -90,7 +93,7 @@ class AthleteController extends Controller
 
     public function getById($id)
     {
-        $atleta = Athlete::with('club')->find($id);
+        $atleta = Athlete::with(['club', 'user'])->find($id);
 
         if ($atleta) {
             $status = 'SUCCESS';
@@ -110,21 +113,47 @@ class AthleteController extends Controller
 
     public function create(CreateAthleteRequest $request)
     {
-        $atleta = Athlete::create($request->validated());
+        $data = $request->validated();
+        $userId = $data['id_usuario'] ?? null;
 
-        if ($atleta) {
-            $status = 'SUCCESS';
-            $cod = 201;
-            $mensaje = 'Elemento creado correctamente';
+        return DB::transaction(function () use ($data, $request, $userId) {
+            if (!$userId) {
+                $username = $request->input('username') ?? $request->input('usuario');
+                $emailUsuario = $request->input('email_usuario') ?? $data['email'] ?? null;
 
-            return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
-        } else {
-            $status = 'NO SUCCESS';
-            $cod = 404;
-            $mensaje = 'Error al crear el elemento';
+                if (!$username) {
+                    return $this->sendResponse('NO SUCCESS', 422, 'Username requerido', null);
+                }
 
-            return $this->sendResponse($status, $cod, $mensaje, null);
-        }
+                if (User::where('username', $username)->exists()) {
+                    return $this->sendResponse('NO SUCCESS', 409, 'Username ya existe', null);
+                }
+
+                $password = $request->input('password') ?? Str::random(10);
+                $user = User::create([
+                    'username' => $username,
+                    'email' => $emailUsuario,
+                    'password' => $password,
+                    'rol' => 'ATLETA',
+                ]);
+
+                $userId = $user->id;
+            }
+
+            $data['id_usuario'] = $userId;
+            $atleta = Athlete::create($data);
+
+            if ($atleta) {
+                $atleta->load(['user', 'club']);
+                $status = 'SUCCESS';
+                $cod = 201;
+                $mensaje = 'Elemento creado correctamente';
+
+                return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
+            }
+
+            return $this->sendResponse('NO SUCCESS', 404, 'Error al crear el elemento', null);
+        });
     }
 
     public function update(UpdateAthleteRequest $request, $id)
