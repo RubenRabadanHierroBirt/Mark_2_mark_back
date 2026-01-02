@@ -13,9 +13,9 @@ class AthleteDTO implements JsonSerializable {
     public ?string $telefono;
     public ?string $fecha_nacimiento;
     public string $status;
-
     public ?string $username;
     public ?string $club;
+    public ?string $avatar;
 
     public function __construct(Athlete $athlete)
     {
@@ -25,6 +25,7 @@ class AthleteDTO implements JsonSerializable {
         $this->telefono = $athlete->telefono;
         $this->fecha_nacimiento = $athlete->fecha_nacimiento;
         $this->status = $athlete->status;
+        $this->avatar = $athlete->user ? $athlete->user->avatar : null;
 
         
         $this->username = $athlete->relationLoaded('user') && $athlete->user

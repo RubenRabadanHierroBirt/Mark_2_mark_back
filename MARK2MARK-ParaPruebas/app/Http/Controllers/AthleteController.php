@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\AthleteRegistration;
 use App\DTOs\Competition\CompetitionDTO;
@@ -214,7 +216,7 @@ class AthleteController extends Controller
     public function getDashboard()
     {
         // 1. OBTENER USUARIO
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $atleta = $user->athlete; // Asumiendo relación en User
 
         if (!$atleta) {
@@ -283,5 +285,60 @@ class AthleteController extends Controller
         ];
 
         return $this->sendResponse('SUCCESS', 200, 'Dashboard cargado correctamente', $data);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        /** @var \App\Models\User $user */  
+        $user = Auth::user(); // Este es el USUARIO (donde está la foto)
+        $atleta = $user->athlete; // Este es el ATLETA (donde están los datos)
+
+        if (!$atleta) {
+            return response()->json(['status' => 'ERROR', 'mensaje' => 'Perfil no encontrado'], 404);
+        }
+
+        // 1. Validar
+        $validator = Validator::make($request->all(), [
+            'nombre'   => 'required|string|max:255',
+            'email'    => 'required|email',
+            'telefono' => 'nullable|string',
+            'avatar'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'ERROR', 'mensaje' => $validator->errors()->first()], 400);
+        }
+
+        // 2. Actualizar datos del ATLETA (Texto)
+        $atleta->nombre = $request->input('nombre');
+        $atleta->email = $request->input('email');
+        $atleta->telefono = $request->input('telefono');
+        $atleta->save();
+
+        // 3. Actualizar foto del USUARIO (Imagen)
+        if ($request->hasFile('avatar')) {
+            // Borrar foto vieja del USUARIO
+            if ($user->avatar) {
+                $pathAntiguo = str_replace('/storage/', '', $user->avatar);
+                Storage::disk('public')->delete($pathAntiguo);
+            }
+
+            // Subir nueva
+            $path = $request->file('avatar')->store('avatars', 'public');
+            
+            // Guardar ruta en tabla USERS
+            $user->avatar = Storage::url($path);
+            $user->save(); // <--- IMPORTANTE: Guardamos el usuario
+        }
+
+        // 4. Devolver respuesta
+        // Recargamos el usuario dentro del atleta para que el DTO pille la foto nueva
+        $atleta->load('user'); 
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'mensaje' => 'Perfil actualizado correctamente',
+            'data' => new AthleteDTO($atleta)
+        ], 200);
     }
 }
