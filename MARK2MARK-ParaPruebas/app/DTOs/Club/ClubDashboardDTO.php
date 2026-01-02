@@ -28,7 +28,7 @@ class ClubDashboardDTO implements JsonSerializable
         $this->email = $club->email;
         $this->telefono = $club->telefono;
         $this->direccion = $club->direccion;
-        $this->fotoUrl = null; 
+        $this->fotoUrl = $club->user ? $club->user->avatar : null;
 
         // 2. Formatear Lista de Resultados
         foreach ($resultadosRecientes as $res) {
@@ -36,7 +36,7 @@ class ClubDashboardDTO implements JsonSerializable
             $posicion = $res->posicion ? "Pos. {$res->posicion}" : ($res->marca ?? '-');
             $prueba = $res->tipo_evento ?? 'Prueba';
             $atleta = $res->athlete ? $res->athlete->nombre : 'Atleta';
-            
+
             $texto = "$posicion en $prueba - $atleta";
 
             $this->ultimosResultados[] = [
