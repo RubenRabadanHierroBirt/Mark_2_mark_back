@@ -4,7 +4,6 @@ use App\Http\Controllers\AthleteController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CompetitionController;
-use App\Http\Controllers\FederacionController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\NewsController;
 use Illuminate\Http\Request;
@@ -81,7 +80,6 @@ Route::get('/calendar/competitions', [CompetitionController::class, 'calendar'])
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
-    Route::get('/dashboard', [FederacionController::class, 'getDashboard']);
 });
 
 // ENDPOINTS RESULTADOS (CLASIFICACIONES)
