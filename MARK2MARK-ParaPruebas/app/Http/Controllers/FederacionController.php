@@ -31,10 +31,11 @@ class FederacionController extends Controller
 
         $data = [
             'perfil' => [
-                'nombre' => 'Federacion',
+                'nombre' => $user->username ?? 'Federacion',
                 'email' => $user->email,
-                'telefono' => $user->telefono ?? "666 654 123",
-                'direccion' => $atleta-> direccion ?? "calle federacion 3, 4"
+                'telefono' => null,
+                'direccion' => null,
+                'fotoUrl' => $user->imagen ?? null
             ],
             'ultimos_resultados' => $ultimosResultados->values()->map(function ($res) {
                 $fecha = $res->competition?->fecha
