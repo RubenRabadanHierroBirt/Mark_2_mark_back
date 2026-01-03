@@ -17,10 +17,8 @@ class FederacionController extends Controller
             return $this->sendResponse('NO SUCCESS', 403, 'No autorizado', null);
         }
 
-        $ultimosResultados = Results::with(['athlete', 'competition'])
-            ->join('competiciones', 'resultados.id_competicion', '=', 'competiciones.id')
-            ->orderBy('competiciones.fecha', 'desc')
-            ->select('resultados.*')
+        $ultimasCompeticiones = Competition::where('fecha', '<', Carbon::now())
+            ->orderBy('fecha', 'desc')
             ->take(3)
             ->get();
 
@@ -37,16 +35,15 @@ class FederacionController extends Controller
                 'direccion' => null,
                 'fotoUrl' => $user->imagen ?? null
             ],
-            'ultimos_resultados' => $ultimosResultados->values()->map(function ($res) {
-                $fecha = $res->competition?->fecha
-                    ? Carbon::parse($res->competition->fecha)->format('d/m/y')
+            'ultimos_resultados' => $ultimasCompeticiones->values()->map(function ($competition) {
+                $fecha = $competition->fecha
+                    ? Carbon::parse($competition->fecha)->format('d/m/y')
                     : null;
-                $texto = trim(($res->competition?->name ?? '') . ' ' . ($res->athlete?->nombre ?? ''));
 
                 return [
-                    'id' => $res->id,
+                    'id' => $competition->id,
                     'fecha' => $fecha,
-                    'texto' => $texto
+                    'texto' => $competition->name ?? ''
                 ];
             }),
             'proximos_campeonatos' => $proximas->values()->map(function ($competition) {
