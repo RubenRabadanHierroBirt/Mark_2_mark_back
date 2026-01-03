@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CompetitionController;
 use App\Http\Controllers\FederacionController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ResultsController;
 use App\Http\Controllers\NewsController;
 use Illuminate\Http\Request;
@@ -93,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);
     Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
    Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
+    Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);
     
 });
 
