@@ -10,8 +10,54 @@ use App\Http\Requests\UpdateResultsRequest;
 
 class ResultsController extends Controller
 {
+
+public function getAll()
+{
+    $results = Results::with(['competition', 'athlete'])->get();
+
+    $timeBasedEvents = [
+        '60m', '100m', '200m', '400m',
+        '800m', '1500m', '5000m', '10000m',
+        '110mh', '400mh'
+    ];
+
+    $bestResults = $results
+        ->groupBy(fn ($result) => $result->id_atleta . '-' . $result->tipo_evento)
+        ->map(function ($group) use ($timeBasedEvents) {
+
+            $tipoEvento = $group->first()->tipo_evento;
+
+            // Aquí van las carreras, el mejor registro es el menor, podemos cambiar la pruebas del array de arriba. Los he cambiado en la BBDD y los dejo así
+            if (in_array($tipoEvento, $timeBasedEvents)) {
+                return $group
+                    ->sortBy(fn ($r) => (float) $r->marca)
+                    ->first();
+            }
+
+            // Aquí van el resto de pruebas, los concursos. El mejor registro es el mayor
+            return $group
+                ->sortByDesc(fn ($r) => (float) $r->marca)
+                ->first();
+        })
+        ->filter()
+        ->values();
+
+
+    $dtos = $bestResults->map(function ( Results $result) {
+        return new ResultsDTO($result);
+    });
+
+    return $this->sendResponse(
+        'SUCCESS',
+        200,
+        'Clasificación obtenida correctamente',
+        $dtos
+    );
+}
+
+
     // Obtener todos los resultados (Transformados a DTO)
-    public function getAll()
+    public function getAllRaw()
     {
         // Cargamos las relaciones para que el DTO tenga datos de atleta y competición
         $results = Results::with(['competition', 'athlete'])->get();
