@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\AthleteRegistration;
@@ -289,7 +290,7 @@ class AthleteController extends Controller
                 'email' => $atleta->email,
                 'telefono' => $atleta->telefono,
                 'club' => $atleta->club ? $atleta->club->name : 'Sin Club',
-                // 'avatar' => $atleta->avatar // Descomenta si tienes foto
+                'avatar' => $user->imagen ?? null
             ],
             // Formatear Resultados para el Front
             'ultimos_resultados' => $ultimosResultados->values()->map(function ($res) {
@@ -343,17 +344,12 @@ class AthleteController extends Controller
 
         // 3. Actualizar foto del USUARIO (Imagen)
         if ($request->hasFile('avatar')) {
-            // Borrar foto vieja del USUARIO
-            if ($user->avatar) {
-                $pathAntiguo = str_replace('/storage/', '', $user->avatar);
-                Storage::disk('public')->delete($pathAntiguo);
+            $cloudUrl = $this->uploadToCloudinary($request->file('avatar'));
+            if (!$cloudUrl) {
+                return response()->json(['status' => 'ERROR', 'mensaje' => 'Error subiendo imagen'], 500);
             }
 
-            // Subir nueva
-            $path = $request->file('avatar')->store('avatars', 'public');
-            
-            // Guardar ruta en tabla USERS
-            $user->avatar = Storage::url($path);
+            $user->imagen = $cloudUrl;
             $user->save(); // <--- IMPORTANTE: Guardamos el usuario
         }
 
@@ -366,5 +362,47 @@ class AthleteController extends Controller
             'mensaje' => 'Perfil actualizado correctamente',
             'data' => new AthleteDTO($atleta)
         ], 200);
+    }
+
+    private function uploadToCloudinary($file): ?string
+    {
+        $cloudinaryUrl = env('CLOUDINARY_URL', '');
+        if (!$cloudinaryUrl) {
+            return null;
+        }
+
+        $parts = parse_url($cloudinaryUrl);
+        if (!$parts || empty($parts['user']) || empty($parts['pass']) || empty($parts['host'])) {
+            return null;
+        }
+
+        $apiKey = $parts['user'];
+        $apiSecret = $parts['pass'];
+        $cloudName = $parts['host'];
+        $timestamp = time();
+        $folder = 'avatars';
+        $signatureBase = 'folder=' . $folder . '&timestamp=' . $timestamp;
+        $signature = sha1($signatureBase . $apiSecret);
+
+        $response = Http::asMultipart()->post(
+            'https://api.cloudinary.com/v1_1/' . $cloudName . '/image/upload',
+            [
+                [
+                    'name' => 'file',
+                    'contents' => fopen($file->getRealPath(), 'r'),
+                    'filename' => $file->getClientOriginalName(),
+                ],
+                ['name' => 'api_key', 'contents' => $apiKey],
+                ['name' => 'timestamp', 'contents' => (string) $timestamp],
+                ['name' => 'folder', 'contents' => $folder],
+                ['name' => 'signature', 'contents' => $signature],
+            ]
+        );
+
+        if (!$response->ok()) {
+            return null;
+        }
+
+        return $response->json('secure_url');
     }
 }
