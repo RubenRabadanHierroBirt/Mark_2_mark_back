@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use App\DTOs\Club\ClubDTO;
 use App\DTOs\Club\ClubDashboardDTO;
-use App\Models\Results;
+use App\Models\AthleteRegistration;
 use App\Models\Competition;
 use App\Models\Club;
 use Illuminate\Http\Request;
@@ -49,14 +49,17 @@ class ClubController extends Controller
             ->whereNull('fecha_fin')
             ->pluck('id_atleta');
 
-        // 3. Buscamos Resultados SOLO de esos atletas
-        $resultados = Results::whereIn('id_atleta', $idsAtletasDelClub)
+        // 3. Buscamos Competiciones donde los atletas del club estan inscritos
+        $inscripciones = AthleteRegistration::whereIn('id_atleta', $idsAtletasDelClub)
             ->with(['athlete', 'competition'])
-            ->join('competiciones', 'resultados.id_competicion', '=', 'competiciones.id')
-            ->orderBy('competiciones.fecha', 'desc')
-            ->select('resultados.*')
-            ->take(3)
             ->get();
+
+        $competicionesRecientes = $inscripciones
+            ->filter(fn ($reg) => $reg->competition)
+            ->sortByDesc(fn ($reg) => $reg->competition->fecha)
+            ->unique('id_competicion')
+            ->values()
+            ->take(3);
 
         // 4. Buscamos Próximas Competiciones
         $proximas = Competition::where('fecha', '>=', Carbon::now())
@@ -65,7 +68,7 @@ class ClubController extends Controller
             ->get();
 
         // 5. Usamos el DTO
-        $dto = new ClubDashboardDTO($club, $resultados, $proximas);
+        $dto = new ClubDashboardDTO($club, $competicionesRecientes, $proximas);
 
         return $this->sendResponse('SUCCESS', 200, 'Dashboard cargado', $dto);
     }

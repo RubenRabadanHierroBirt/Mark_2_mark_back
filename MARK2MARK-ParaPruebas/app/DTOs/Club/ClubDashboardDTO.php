@@ -30,19 +30,17 @@ class ClubDashboardDTO implements JsonSerializable
         $this->direccion = $club->direccion;
         $this->fotoUrl = $club->user ? $club->user->imagen : null;
 
-        // 2. Formatear Lista de Resultados
-        foreach ($resultadosRecientes as $res) {
-            // Construimos el texto: "Oro en 100m - Jon"
-            $posicion = $res->posicion ? "Pos. {$res->posicion}" : ($res->marca ?? '-');
-            $prueba = $res->tipo_evento ?? 'Prueba';
-            $atleta = $res->athlete ? $res->athlete->nombre : 'Atleta';
-
-            $texto = "$posicion en $prueba - $atleta";
+        // 2. Formatear Lista de Competiciones con inscripciones de atletas del club
+        foreach ($resultadosRecientes as $registro) {
+            $competition = $registro->competition;
+            if (!$competition) {
+                continue;
+            }
 
             $this->ultimosResultados[] = [
-                'id' => $res->id,
-                'fecha' => $res->competition ? Carbon::parse($res->competition->fecha)->format('d/m/y') : '-',
-                'texto' => $texto
+                'id' => $competition->id,
+                'fecha' => $competition->fecha ? Carbon::parse($competition->fecha)->format('d/m/y') : '-',
+                'texto' => $competition->name ?? ''
             ];
         }
 
