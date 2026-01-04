@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/admin/atletas/{id}', [AthleteController::class, 'update']);
     Route::delete('/admin/atletas/{id}', [AthleteController::class, 'delete']);
     Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
+    Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);
 });
 
 
@@ -95,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
    Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
     Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);
+    Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
     
 });
 

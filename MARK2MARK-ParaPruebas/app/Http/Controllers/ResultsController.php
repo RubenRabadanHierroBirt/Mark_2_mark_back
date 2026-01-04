@@ -169,6 +169,46 @@ public function getAll()
     }
 
     // Respuesta EstÃ¡ndar
+    public function downloadByCompetitionExcel($competitionId)
+    {
+        $results = Results::with(['competition', 'athlete.club'])
+            ->where('id_competicion', $competitionId)
+            ->get();
+
+        if ($results->isEmpty()) {
+            return $this->sendResponse('NO SUCCESS', 404, 'No hay resultados para esta competicion', null);
+        }
+
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, ['Fecha', 'Competicion', 'Atleta', 'Club', 'Categoria', 'Marca', 'Posicion', 'Viento']);
+
+        foreach ($results as $res) {
+            $fecha = $res->competition ? \Carbon\Carbon::parse($res->competition->fecha)->format('d/m/y') : '';
+            $competicion = $res->competition ? $res->competition->name : '';
+            $atleta = $res->athlete ? $res->athlete->nombre : '';
+            $club = ($res->athlete && $res->athlete->club) ? $res->athlete->club->name : '';
+            fputcsv($handle, [
+                $fecha,
+                $competicion,
+                $atleta,
+                $club,
+                $res->categoria,
+                $res->marca,
+                $res->posicion,
+                $res->wind_speed
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="resultados_competicion_' . $competitionId . '.csv"'
+        ]);
+    }
+
     protected function sendResponse($status, $cod, $mensaje, $data)
     {
         return response()->json([

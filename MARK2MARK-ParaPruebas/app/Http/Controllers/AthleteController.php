@@ -296,6 +296,7 @@ class AthleteController extends Controller
             'ultimos_resultados' => $ultimosResultados->values()->map(function ($res) {
                 return [
                     'id' => $res->id,
+                    'competition_id' => $res->competition->id,
                     // Carbon convierte la fecha fea de SQL a "15/10/25"
                     'fecha' => \Carbon\Carbon::parse($res->competition->fecha)->format('d/m/y'),
                     'evento' => ($res->competition->sede ?? '') . ' ' . $res->competition->name,
@@ -312,6 +313,45 @@ class AthleteController extends Controller
         ];
 
         return $this->sendResponse('SUCCESS', 200, 'Dashboard cargado correctamente', $data);
+    }
+
+    public function downloadUltimosResultadosExcel()
+    {
+        $user = Auth::user();
+        $atleta = $user->athlete;
+
+        if (!$atleta) {
+            return $this->sendResponse('NO SUCCESS', 404, 'Perfil no encontrado', null);
+        }
+
+        $ultimosResultados = $atleta->results()
+            ->with('competition')
+            ->get()
+            ->filter(function ($res) {
+                return $res->competition && $res->competition->fecha < now();
+            })
+            ->sortByDesc(function ($res) {
+                return $res->competition->fecha;
+            })
+            ->take(3);
+
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, ['Fecha', 'Evento', 'Categoria', 'Marca']);
+
+        foreach ($ultimosResultados as $res) {
+            $fecha = \Carbon\Carbon::parse($res->competition->fecha)->format('d/m/y');
+            $evento = trim(($res->competition->sede ?? '') . ' ' . $res->competition->name);
+            fputcsv($handle, [$fecha, $evento, $res->categoria, $res->marca]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="ultimos_resultados_atleta.csv"'
+        ]);
     }
 
     public function updateProfile(Request $request)
