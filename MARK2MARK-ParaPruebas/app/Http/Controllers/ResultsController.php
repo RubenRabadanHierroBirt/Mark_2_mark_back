@@ -13,7 +13,7 @@ class ResultsController extends Controller
 
 public function getAll()
 {
-    $results = Results::with(['competition', 'athlete'])->get();
+    $results = Results::with(['competition', 'athlete.club'])->get();
 
     $timeBasedEvents = [
         '60m', '100m', '200m', '400m',
@@ -27,14 +27,14 @@ public function getAll()
 
             $tipoEvento = $group->first()->tipo_evento;
 
-            // Aquí van las carreras, el mejor registro es el menor, podemos cambiar la pruebas del array de arriba. Los he cambiado en la BBDD y los dejo así
+            // AquÃ­ van las carreras, el mejor registro es el menor, podemos cambiar la pruebas del array de arriba. Los he cambiado en la BBDD y los dejo asÃ­
             if (in_array($tipoEvento, $timeBasedEvents)) {
                 return $group
                     ->sortBy(fn ($r) => (float) $r->marca)
                     ->first();
             }
 
-            // Aquí van el resto de pruebas, los concursos. El mejor registro es el mayor
+            // AquÃ­ van el resto de pruebas, los concursos. El mejor registro es el mayor
             return $group
                 ->sortByDesc(fn ($r) => (float) $r->marca)
                 ->first();
@@ -50,7 +50,7 @@ public function getAll()
     return $this->sendResponse(
         'SUCCESS',
         200,
-        'Clasificación obtenida correctamente',
+        'ClasificaciÃ³n obtenida correctamente',
         $dtos
     );
 }
@@ -59,10 +59,10 @@ public function getAll()
     // Obtener todos los resultados (Transformados a DTO)
     public function getAllRaw()
     {
-        // Cargamos las relaciones para que el DTO tenga datos de atleta y competición
-        $results = Results::with(['competition', 'athlete'])->get();
+        // Cargamos las relaciones para que el DTO tenga datos de atleta y competiciÃ³n
+        $results = Results::with(['competition', 'athlete.club'])->get();
 
-        // Usamos map para transformar la colección entera
+        // Usamos map para transformar la colecciÃ³n entera
         $dtos = $results->map(function ($result) {
             return new ResultsDTO($result);
         });
@@ -78,7 +78,7 @@ public function getAll()
     // Obtener por ID
     public function getById($id)
     {
-        $result = Results::with(['competition', 'athlete'])->find($id);
+        $result = Results::with(['competition', 'athlete.club'])->find($id);
 
         if (!$result) {
             return $this->sendResponse('NO SUCCESS', 404, 'Resultado no encontrado', null);
@@ -95,7 +95,7 @@ public function getAll()
     // Obtener por Atleta
     public function getByAthlete($athleteId)
     {
-        $results = Results::with('competition')
+        $results = Results::with(['competition', 'athlete.club'])
             ->where('id_atleta', $athleteId)
             ->get();
 
@@ -116,8 +116,8 @@ public function getAll()
     {
         $result = Results::create($request->validated());
         
-        // Recargamos relaciones por si queremos devolver el nombre del atleta recién creado
-        $result->load(['athlete', 'competition']);
+        // Recargamos relaciones por si queremos devolver el nombre del atleta reciÃ©n creado
+        $result->load(['athlete.club', 'competition']);
 
         return $this->sendResponse(
             'SUCCESS',
@@ -139,7 +139,7 @@ public function getAll()
         $result->update($request->validated());
         
         // Recargamos relaciones para el DTO
-        $result->load(['athlete', 'competition']);
+        $result->load(['athlete.club', 'competition']);
 
         return $this->sendResponse(
             'SUCCESS',
@@ -164,11 +164,11 @@ public function getAll()
             'SUCCESS',
             200,
             'Resultado eliminado correctamente',
-            new ResultsDTO($result) // Devolvemos lo que se borró (opcional)
+            new ResultsDTO($result) // Devolvemos lo que se borrÃ³ (opcional)
         );
     }
 
-    // Respuesta Estándar
+    // Respuesta EstÃ¡ndar
     protected function sendResponse($status, $cod, $mensaje, $data)
     {
         return response()->json([
