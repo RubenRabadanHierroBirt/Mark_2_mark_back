@@ -28,7 +28,7 @@ class ClubDashboardDTO implements JsonSerializable
         $this->email = $club->email;
         $this->telefono = $club->telefono;
         $this->direccion = $club->direccion;
-        $this->fotoUrl = $club->user ? $club->user->avatar : null;
+        $this->fotoUrl = $club->user ? $club->user->imagen : null;
 
         // 2. Formatear Lista de Resultados
         foreach ($resultadosRecientes as $res) {

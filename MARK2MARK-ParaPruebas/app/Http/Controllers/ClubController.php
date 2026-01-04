@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use App\DTOs\Club\ClubDTO;
 use App\DTOs\Club\ClubDashboardDTO;
@@ -159,20 +159,16 @@ class ClubController extends Controller
 
         // 3. Actualizar FOTO en la tabla USERS
         if ($request->hasFile('avatar')) {
-            $user = $club->user; // El usuario dueño del club
+            $user = $club->user; // El usuario due?o del club
 
             if ($user) {
-                // Borrar foto vieja si existe
-                if ($user->avatar) {
-                    $pathAntiguo = str_replace('/storage/', '', $user->avatar);
-                    Storage::disk('public')->delete($pathAntiguo);
+                $cloudUrl = $this->uploadToCloudinary($request->file('avatar'));
+                if (!$cloudUrl) {
+                    return $this->sendResponse('NO SUCCESS', 500, 'Error subiendo imagen', null);
                 }
 
-                // Subir nueva
-                $path = $request->file('avatar')->store('avatars', 'public');
-
                 // Guardar URL en tabla users
-                $user->avatar = Storage::url($path);
+                $user->imagen = $cloudUrl;
                 $user->save();
             }
         }
@@ -184,6 +180,49 @@ class ClubController extends Controller
         return $this->sendResponse('SUCCESS', 200, 'Club actualizado correctamente', new ClubDTO($club));
     }
 
+
+
+    private function uploadToCloudinary($file): ?string
+    {
+        $cloudinaryUrl = env('CLOUDINARY_URL', '');
+        if (!$cloudinaryUrl) {
+            return null;
+        }
+
+        $parts = parse_url($cloudinaryUrl);
+        if (!$parts || empty($parts['user']) || empty($parts['pass']) || empty($parts['host'])) {
+            return null;
+        }
+
+        $apiKey = $parts['user'];
+        $apiSecret = $parts['pass'];
+        $cloudName = $parts['host'];
+        $timestamp = time();
+        $folder = 'avatars';
+        $signatureBase = 'folder=' . $folder . '&timestamp=' . $timestamp;
+        $signature = sha1($signatureBase . $apiSecret);
+
+        $response = Http::asMultipart()->post(
+            'https://api.cloudinary.com/v1_1/' . $cloudName . '/image/upload',
+            [
+                [
+                    'name' => 'file',
+                    'contents' => fopen($file->getRealPath(), 'r'),
+                    'filename' => $file->getClientOriginalName(),
+                ],
+                ['name' => 'api_key', 'contents' => $apiKey],
+                ['name' => 'timestamp', 'contents' => (string) $timestamp],
+                ['name' => 'folder', 'contents' => $folder],
+                ['name' => 'signature', 'contents' => $signature],
+            ]
+        );
+
+        if (!$response->ok()) {
+            return null;
+        }
+
+        return $response->json('secure_url');
+    }
 
     public function delete(string $id)
     {

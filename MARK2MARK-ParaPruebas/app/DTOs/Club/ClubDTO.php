@@ -34,7 +34,7 @@ class ClubDTO implements JsonSerializable
         $this->codigo_postal = $club->codigo_postal;
         $this->estado = $club->estado;
         $this->fotoUrl = $club->relationLoaded('user') && $club->user
-            ? $club->user->avatar
+            ? $club->user->imagen
             : null;
 
 
