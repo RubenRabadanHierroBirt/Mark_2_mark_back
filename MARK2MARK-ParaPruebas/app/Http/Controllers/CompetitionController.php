@@ -20,7 +20,7 @@ class CompetitionController extends Controller
     public function getAll()
     {
         // 1. Obtenemos competiciones ordenadas
-        $competitions = Competition::orderBy('created_at', 'desc')->get();
+       $competitions = Competition::orderBy('id', 'desc')->get();
         
         $dtosCompetitions = [];
 
