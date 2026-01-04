@@ -9,13 +9,6 @@ use Carbon\Carbon;
 class CompetitionDTO implements JsonSerializable
 
 {
-    // public function __construct(
-    //     public int $id,
-    //     public string $name,
-    //     public string $sede,
-    //     public string $fecha
-
-    // ) {}
 
     public int $id;
     public string $name;
@@ -25,6 +18,8 @@ class CompetitionDTO implements JsonSerializable
     public string $status;
     public bool $revisado_federacion;
     public string $creado_el;
+    public int $total_atletas;
+    public int $total_clubes;
 
     public function __construct(Competition $competition)
     {
@@ -36,13 +31,14 @@ class CompetitionDTO implements JsonSerializable
 
         $this->fecha = $competition->fecha
             ? Carbon::parse($competition->fecha)->format('d/m/y')
-            : null;
+            : ''; // He puesto string vacía por defecto si es null para evitar errores en front
 
         $this->revisado_federacion = (bool) $competition->revisado_federacion;
 
-        // $this->creado_el = $competition->creado_el
-        //     ? Carbon::parse($competition->creado_el)->format('d/m/y H:i:s')
-        //     : null;
+        // === ASIGNACIÓN DE CONTADORES ===
+        // Intentamos leer la propiedad dinámica. Si no existe, ponemos 0.
+        $this->total_atletas = $competition->total_atletas ?? 0;
+        $this->total_clubes = $competition->total_clubes ?? 0;
     }
 
 

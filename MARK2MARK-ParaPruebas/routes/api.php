@@ -57,7 +57,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 // ENDPOINT COMPETICIONES 
-
 Route::get('/admin/competitions', [CompetitionController::class, 'getAll']);
 Route::get('/admin/competitions/{id}', [CompetitionController::class, 'getById']);
 // Route::post('/admin/competitions', [CompetitionController::class, 'create']);
@@ -68,12 +67,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/competitions', [CompetitionController::class, 'create']);
     Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
     Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
+
+    // --- NUEVAS RUTAS PARA INSCRIPCIÓN DE CLUBES ---
+    // 1. Cargar la tabla del modal (Atletas del club + estado inscripción)
+    Route::get('/competition/{id}/inscripcion-data', [CompetitionController::class, 'getInscripcionData']);
+
+    // 2. Inscribir a un atleta (Click en "Añadir")
+    Route::post('/competition/registrar-atleta', [CompetitionController::class, 'registrarAtleta']);
+
+    // 3. Quitar inscripción (Click en "Eliminar")
+    Route::delete('/competition/registro/{id}', [CompetitionController::class, 'eliminarInscripcion']);
 });
 
-
-
 // ENDPOINTS NEWS
-
 Route::get('/noticias', [NewsController::class, 'getAll']);
 Route::get('/noticias/{id}', [NewsController::class, 'getById']);
 Route::get('/admin/noticias', [NewsController::class, 'getAll']);
@@ -85,19 +91,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/admin/noticias/{id}', [NewsController::class, 'delete']);
 });
 
-
-
-
 Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
     Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);
     Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
-   Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
+    Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
     Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);
     Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
-    
 });
 
 // ENDPOINTS RESULTADOS (CLASIFICACIONES)

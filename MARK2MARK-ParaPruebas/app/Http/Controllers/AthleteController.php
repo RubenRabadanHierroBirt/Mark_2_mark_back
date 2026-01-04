@@ -118,12 +118,44 @@ class AthleteController extends Controller
     }
 
 
-    public function create(CreateAthleteRequest $request)
+ public function create(CreateAthleteRequest $request)
     {
         $data = $request->validated();
+        
+        // 1. OBTENEMOS EL USUARIO QUE HACE LA PETICIÓN
+        $usuarioLogueado = $request->user();
         $userId = $data['id_usuario'] ?? null;
 
-        return DB::transaction(function () use ($data, $request, $userId) {
+        return DB::transaction(function () use ($data, $request, $userId, $usuarioLogueado) {
+            
+            // CASO A: ERES UN CLUB (Se ignora el formulario y se usa TU club)
+            if (strtoupper($usuarioLogueado->rol) === 'CLUB') {
+                
+                if (!$usuarioLogueado->club) {
+                    \Illuminate\Support\Facades\Log::error('ERROR: Usuario CLUB sin club vinculado en BD');
+                    return $this->sendResponse('NO SUCCESS', 400, 'Error: Tu usuario no tiene club asignado.', null);
+                }
+
+                // Asignamos AUTOMÁTICAMENTE tu club
+                $data['club_actual_id'] = $usuarioLogueado->club->id;
+                $data['club_nombre']    = $usuarioLogueado->club->name;
+            } 
+            
+            // CASO B: ERES FEDERACIÓN (Usamos lo que elegiste en el desplegable)
+            else {
+                $clubId = $data['club_actual_id'] ?? null;
+                if (!$clubId) {
+                    $clubNombre = $request->input('club_nombre') ?? $request->input('club');
+                    if ($clubNombre) {
+                        $club = Club::where('name', $clubNombre)->first();
+                        if ($club) {
+                            $data['club_actual_id'] = $club->id;
+                        }
+                    }
+                }
+            }
+
+            // Lógica de crear Usuario si no existe
             if (!$userId) {
                 $username = $request->input('username') ?? $request->input('usuario');
                 $emailUsuario = $request->input('email_usuario') ?? $data['email'] ?? null;
@@ -137,6 +169,7 @@ class AthleteController extends Controller
                 }
 
                 $password = $request->input('password') ?? Str::random(10);
+                
                 $user = User::create([
                     'username' => $username,
                     'email' => $emailUsuario,
@@ -147,27 +180,14 @@ class AthleteController extends Controller
                 $userId = $user->id;
             }
 
-            $clubId = $data['club_actual_id'] ?? null;
-            if (!$clubId) {
-                $clubNombre = $request->input('club_nombre') ?? $request->input('club');
-                if ($clubNombre) {
-                    $club = Club::where('name', $clubNombre)->first();
-                    if ($club) {
-                        $data['club_actual_id'] = $club->id;
-                    }
-                }
-            }
-
             $data['id_usuario'] = $userId;
+            
+            // Creamos el atleta
             $atleta = Athlete::create($data);
 
             if ($atleta) {
                 $atleta->load(['user', 'club']);
-                $status = 'SUCCESS';
-                $cod = 201;
-                $mensaje = 'Elemento creado correctamente';
-
-                return $this->sendResponse($status, $cod, $mensaje, new AthleteDTO($atleta));
+                return $this->sendResponse('SUCCESS', 201, 'Elemento creado correctamente', new AthleteDTO($atleta));
             }
 
             return $this->sendResponse('NO SUCCESS', 404, 'Error al crear el elemento', null);

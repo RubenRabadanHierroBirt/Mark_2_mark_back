@@ -20,7 +20,8 @@ class AthleteRegistration extends Model
         'id_atleta',
         'id_club',
         'tipo_evento',
-        'dorsal'
+        'dorsal',
+        'fecha_inscripcion'
     ];
 
     
