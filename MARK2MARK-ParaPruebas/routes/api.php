@@ -98,6 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);
     Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
     Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
+    Route::get('/admin/report/{tipo}/excel', [ReportController::class, 'downloadExcel']);
     Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);
     Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
 });
