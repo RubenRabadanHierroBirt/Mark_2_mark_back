@@ -62,8 +62,8 @@ class ClubController extends Controller
             ->take(3);
 
         // 4. Buscamos Próximas Competiciones
-        $proximas = Competition::where('fecha', '>=', Carbon::now())
-            ->orderBy('fecha', 'asc')
+        $proximas = Competition::where('fecha', '<', Carbon::now())
+            ->orderBy('fecha', 'desc')
             ->take(3)
             ->get();
 
