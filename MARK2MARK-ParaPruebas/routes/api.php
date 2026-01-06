@@ -21,6 +21,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
+
+
 // ENDPOINTS ATLETAS
 
 Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);
@@ -32,9 +34,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/atletas', [AthleteController::class, 'create']);
     Route::put('/admin/atletas/{id}', [AthleteController::class, 'update']);
     Route::delete('/admin/atletas/{id}', [AthleteController::class, 'delete']);
-    Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
+    //Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
     Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);
 });
+
+
+
+
+
+
 
 
 // ENDPOINT CLUBES ----------- comprobar endpoint con autenticación en atletas y competiciones. Si funciona, añadir aquí tambn
@@ -47,11 +55,24 @@ Route::delete('admin/clubes/{id}', [ClubController::class, 'delete']);
 
 // Route::get('/admin/clubes', function () {        return response()->json(['message' => 'clubes OK']);         });
 
+
+
+
+
+
+
+
+
+
+
 // ENDPOINT FEDERACION
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
 });
+
+
+
 
 
 
@@ -79,6 +100,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/competition/registro/{id}', [CompetitionController::class, 'eliminarInscripcion']);
 });
 
+
+
+
+
+
+
+
+
+
+
+
 // ENDPOINTS NEWS
 Route::get('/noticias', [NewsController::class, 'getAll']);
 Route::get('/noticias/{id}', [NewsController::class, 'getById']);
@@ -93,8 +125,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);
 
+
+
+Route::middleware(['auth:sanctum', 'role:ATLETA'])->group(function () {
+    Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
+//    Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
     Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);
     Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
     Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
@@ -103,12 +141,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
 });
 
+
+
+
+
+
+
+
+
 // ENDPOINTS RESULTADOS (CLASIFICACIONES)
 Route::get('/results', [ResultsController::class, 'getAll']);
 Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // Por si la necesitas luego
 
 //Para todos los usuarios 
 Route::get('/competitions', [CompetitionController::class, 'getAll']);
+
+
+
+
+
+
 // ENDPOINT PRUEBA PING
 Route::get('/ping', function () {
     return response()->json(['message' => 'API OK']);
