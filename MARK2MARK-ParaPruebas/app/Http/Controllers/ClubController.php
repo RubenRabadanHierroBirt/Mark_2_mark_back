@@ -55,15 +55,15 @@ class ClubController extends Controller
             ->get();
 
         $competicionesRecientes = $inscripciones
-            ->filter(fn ($reg) => $reg->competition)
+            ->filter(fn ($reg) => $reg->competition && Carbon::parse($reg->competition->fecha)->lt(Carbon::today()))
             ->sortByDesc(fn ($reg) => $reg->competition->fecha)
             ->unique('id_competicion')
             ->values()
             ->take(3);
 
         // 4. Buscamos Próximas Competiciones
-        $proximas = Competition::where('fecha', '<', Carbon::now())
-            ->orderBy('fecha', 'desc')
+        $proximas = Competition::where('fecha', '>=', Carbon::now())
+            ->orderBy('fecha', 'asc')
             ->take(3)
             ->get();
 
