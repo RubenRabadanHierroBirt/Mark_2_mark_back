@@ -273,8 +273,7 @@ class AthleteController extends Controller
         // Cargar el Club para la tarjeta de Datos Personales
         $atleta->load('club');
 
-        // 2. ÚLTIMOS RESULTADOS (Tarjeta Roja de Arriba)
-        // Usa tu modelo 'Results.php'
+        // 2. ÚLTIMOS RESULTADOS
         $ultimosResultados = $atleta->results()
             ->with('competition') // Carga la relación definida en Results.php
             ->get()
@@ -321,6 +320,7 @@ class AthleteController extends Controller
                     'fecha' => \Carbon\Carbon::parse($res->competition->fecha)->format('d/m/y'),
                     'evento' => ($res->competition->sede ?? '') . ' ' . $res->competition->name,
                     'categoria' => $res->categoria,
+                    'tipo_evento' => $res->tipo_evento,
                     'marca' => $res->marca,
                     'detalle_url' => '/resultados/' . $res->id
                 ];
