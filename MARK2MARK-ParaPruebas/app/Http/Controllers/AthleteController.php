@@ -231,6 +231,10 @@ class AthleteController extends Controller
             return $this->sendResponse('NO SUCCESS', 404, 'Error al eliminar el elemento', null);
         }
 
+        if ($atleta->results()->exists()) {
+            return $this->sendResponse('NO SUCCESS', 409, 'No es posible eliminar al atleta porque tiene resultados en competiciones.', null);
+        }
+
         return DB::transaction(function () use ($atleta) {
             $user = $atleta->user;
             $atleta->delete();
