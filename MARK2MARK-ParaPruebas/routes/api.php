@@ -22,81 +22,33 @@ Route::get('/user', function (Request $request) {
 
 
 
+// ENDOPINT PUBLICOS -------------------------------------------
 
-// ENDPOINTS ATLETAS
+Route::get('/competitions', [CompetitionController::class, 'getAll']);
+Route::get('/noticias', [NewsController::class, 'getAll']);
+Route::get('/results', [ResultsController::class, 'getAll']);
 
-Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);
-// Route::post('admin/atletas', [AthleteController::class, 'create']);
-// Route::put('admin/atletas/{id}', [AthleteController::class, 'update']);
-// Route::delete('admin/atletas/{id}', [AthleteController::class, 'delete']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('admin/atletas', [AthleteController::class, 'getAll']);
-    Route::post('/admin/atletas', [AthleteController::class, 'create']);
-    Route::put('/admin/atletas/{id}', [AthleteController::class, 'update']);
-    Route::delete('/admin/atletas/{id}', [AthleteController::class, 'delete']);
-    //Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
-    Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);
+
+
+
+// ENDPOINTS PARA ATLETAS --------------------------------------
+
+Route::middleware(['auth:sanctum', 'role:ATLETA'])->group(function () {
+    Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
+    Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);// ATLETA CLUB FEDERACION
+
 });
 
 
 
 
+// ENDPOINTS PARA CLUBS ----------------------------------------
 
-
-
-
-// ENDPOINT CLUBES ----------- comprobar endpoint con autenticación en atletas y competiciones. Si funciona, añadir aquí tambn
-
-Route::get('admin/clubes', [ClubController::class, 'getAll']);
-Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);
-Route::post('admin/clubes', [ClubController::class, 'create']);
-Route::put('admin/clubes/{id}', [ClubController::class, 'update']);
-Route::delete('admin/clubes/{id}', [ClubController::class, 'delete']);
-
-// Route::get('/admin/clubes', function () {        return response()->json(['message' => 'clubes OK']);         });
-
-
-
-
-
-
-
-
-
-
-
-// ENDPOINT FEDERACION
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
-});
-
-
-
-
-
-
-
-// ENDPOINT COMPETICIONES 
-Route::get('/admin/competitions', [CompetitionController::class, 'getAll']);
-Route::get('/admin/competitions/{id}', [CompetitionController::class, 'getById']);
-// Route::post('/admin/competitions', [CompetitionController::class, 'create']);
-// Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
-// Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/admin/competitions', [CompetitionController::class, 'create']);
-    Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
-    Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
-
-    // --- NUEVAS RUTAS PARA INSCRIPCIÓN DE CLUBES ---
-    // 1. Cargar la tabla del modal (Atletas del club + estado inscripción)
+Route::middleware(['auth:sanctum', 'role:CLUB'])->group(function () {
+    Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
+    
     Route::get('/competition/{id}/inscripcion-data', [CompetitionController::class, 'getInscripcionData']);
-
-    // 2. Inscribir a un atleta (Click en "Añadir")
     Route::post('/competition/registrar-atleta', [CompetitionController::class, 'registrarAtleta']);
-
-    // 3. Quitar inscripción (Click en "Eliminar")
     Route::delete('/competition/registro/{id}', [CompetitionController::class, 'eliminarInscripcion']);
 });
 
@@ -104,41 +56,52 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+// ENDPOINTS PARA FEDERACION -----------------------------------
 
-
-
-
-
-
-
-// ENDPOINTS NEWS
-Route::get('/noticias', [NewsController::class, 'getAll']);
-Route::get('/noticias/{id}', [NewsController::class, 'getById']);
-Route::get('/admin/noticias', [NewsController::class, 'getAll']);
-Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/admin/noticias', [NewsController::class, 'create']);
-    Route::put('/admin/noticias/{id}', [NewsController::class, 'update']);
-    Route::delete('/admin/noticias/{id}', [NewsController::class, 'delete']);
-});
-
-Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);
-
-
-
-Route::middleware(['auth:sanctum', 'role:ATLETA'])->group(function () {
-    Route::get('/atleta/dashboard', [AthleteController::class, 'getDashboard']);
-});
-
-Route::middleware('auth:sanctum')->group(function () {
-//    Route::get('/dashboard', [AthleteController::class, 'getDashboard']);
-    Route::put('/athlete/update', [AthleteController::class, 'updateProfile']);
-    Route::get('/club/dashboard', [ClubController::class, 'getDashboard']);
+Route::middleware(['auth:sanctum', 'role:FEDERACION'])->group(function () {
     Route::get('/admin/dashboard', [FederacionController::class, 'getDashboard']);
-    Route::get('/admin/report/{tipo}/excel', [ReportController::class, 'downloadExcel']);
-    Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);
-    Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
+    
+    Route::get('admin/clubes', [ClubController::class, 'getAll']);
+    Route::post('admin/clubes', [ClubController::class, 'create']);
+    Route::delete('admin/clubes/{id}', [ClubController::class, 'delete']);
+    
+    Route::post('/admin/competitions', [CompetitionController::class, 'create']);
+    Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
+    Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
+    
+    Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
+    Route::post('/admin/noticias', [NewsController::class, 'create']);//
+    Route::put('/admin/noticias/{id}', [NewsController::class, 'update']);//
+    Route::delete('/admin/noticias/{id}', [NewsController::class, 'delete']);//
+    
+    Route::get('/admin/report/{tipo}/excel', [ReportController::class, 'downloadExcel']);// FEDERACION
+});
+
+
+
+
+// ENDPOINT PARA CLUB Y FEDERACION -------------------------------
+
+Route::middleware(['auth:sanctum', 'role:CLUB,FEDERACION'])->group(function () {
+    Route::get('admin/atletas', [AthleteController::class, 'getAll']); // club y federacion
+    Route::post('/admin/atletas', [AthleteController::class, 'create']);// CLUB Y FEDERACION
+    Route::delete('/admin/atletas/{id}', [AthleteController::class, 'delete']);// CLUB Y FEDERACION
+    
+    Route::put('admin/clubes/{id}', [ClubController::class, 'update']);
+    
+    Route::get('/admin/competitions', [CompetitionController::class, 'getAll']);// federacion, club
+});
+
+
+
+
+
+// ENDPOINTS PARA ATLETA, CLUB Y FEDERACION ----------------------
+
+Route::middleware(['auth:sanctum', 'role:ATLETA,CLUB,FEDERACION'])->group(function () {
+        Route::put('/admin/atletas/{id}', [AthleteController::class, 'update']);
+
+        Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
 });
 
 
@@ -146,22 +109,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
+// REPASAR ----------------------------------
+
+Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);//
+
+Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);//
+
+Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);//
+
+Route::get('/admin/competitions/{id}', [CompetitionController::class, 'getById']);//
+
+Route::get('/noticias/{id}', [NewsController::class, 'getById']);//
+Route::get('/admin/noticias', [NewsController::class, 'getAll']);//
+Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
+
+Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);//
+
+Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);//
 
 
+Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // 
 
-// ENDPOINTS RESULTADOS (CLASIFICACIONES)
-Route::get('/results', [ResultsController::class, 'getAll']);
-Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // Por si la necesitas luego
-
-//Para todos los usuarios 
-Route::get('/competitions', [CompetitionController::class, 'getAll']);
-
-
-
-
-
-
-// ENDPOINT PRUEBA PING
-Route::get('/ping', function () {
-    return response()->json(['message' => 'API OK']);
-});
+// // ENDPOINT PRUEBA PING
+// Route::get('/ping', function () {
+//     return response()->json(['message' => 'API OK']);//
+// });
