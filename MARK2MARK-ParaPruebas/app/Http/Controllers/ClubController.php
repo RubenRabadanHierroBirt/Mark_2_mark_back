@@ -141,7 +141,8 @@ class ClubController extends Controller
             'nombre'      => 'required|string|max:255',
             'email'       => 'required|email|max:255',
             'telefono'    => 'nullable|string',
-            'avatar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'avatar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'estado'      => 'sometimes|in:Activo,Pendiente,Suspendido'
         ]);
 
         if ($validator->fails()) {
@@ -157,6 +158,7 @@ class ClubController extends Controller
         if ($request->has('responsable')) $club->responsable = $request->input('responsable');
         if ($request->has('localidad')) $club->localidad = $request->input('localidad');
         if ($request->has('codigo_postal')) $club->codigo_postal = $request->input('codigo_postal');
+        if ($request->has('estado')) $club->estado = $request->input('estado');
 
         $club->save();
 
