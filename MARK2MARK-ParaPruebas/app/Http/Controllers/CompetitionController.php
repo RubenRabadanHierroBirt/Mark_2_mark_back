@@ -14,19 +14,16 @@ use App\Http\Requests\CreateCompetitionRequest;
 use App\Http\Requests\UpdateCompetitionRequest;
 
 
-// FALTA COMPROBAR QUE LAS VALIDACIONES DE LAS REQUEST EN CREATE Y UPDATE FUNCIONEN
 class CompetitionController extends Controller
 {
     public function getAll()
     {
-        // 1. Obtenemos competiciones ordenadas
-       $competitions = Competition::orderBy('id', 'desc')->get();
+        $competitions = Competition::orderBy('id', 'desc')->get();
         
         $dtosCompetitions = [];
 
         foreach ($competitions as $competition) {
             
-            // 2. Calculamos los contadores para esta competición
             $atletasCount = AthleteRegistration::where('id_competicion', $competition->id)
                                 ->distinct('id_atleta')
                                 ->count('id_atleta');
@@ -35,16 +32,13 @@ class CompetitionController extends Controller
                                 ->distinct('id_club')
                                 ->count('id_club');
 
-            // 3. INYECTAMOS los datos en el modelo temporalmente
-            // Laravel permite crear propiedades al vuelo en los objetos
             $competition->total_atletas = $atletasCount;
             $competition->total_clubes = $clubesCount;
 
-            // 4. Pasamos el modelo (con los datos extra) al DTO
             $dtosCompetitions[] = new CompetitionDTO($competition);
         }
 
-        // 5. Devolvemos la respuesta usando tu método helper
+        
         if ($dtosCompetitions) {
             return $this->sendResponse(
                 'SUCCESS',
@@ -53,8 +47,7 @@ class CompetitionController extends Controller
                 $dtosCompetitions
             );
         } else {
-            // Nota: Si no hay competiciones, devolver un array vacío suele ser mejor que un 404,
-            // pero mantengo tu lógica original.
+            
             return $this->sendResponse(
                 'SUCCESS', 
                 200, 
@@ -143,21 +136,18 @@ class CompetitionController extends Controller
         }
     }
 
-    /**
-     * 1. GET: Cargar datos para el Modal de Inscripción
-     * Devuelve tus atletas y marca cuáles ya están inscritos en esa competición.
-     */
+    
   public function getInscripcionData(Request $request, $competitionId)
     {
         $user = $request->user();
         $clubId = $user->club->id; // O $user->club_id según tu relación
 
-        // 1. Obtenemos los atletas del club (Activos)
+        // Obtenemos los atletas del club (Activos)
         $misAtletas = Athlete::where('club_actual_id', $clubId)
             ->where('status', 'Activo') 
             ->get();
 
-        // 2. Mapeamos para añadir la info de inscripciones
+        // Mapeamos para añadir la info de inscripciones
         $data = $misAtletas->map(function ($atleta) use ($competitionId) {
             
             // Buscamos si este atleta tiene registros EN ESTA competición
@@ -184,28 +174,25 @@ class CompetitionController extends Controller
         return response()->json(['data' => $data]);
     }
 
-    /**
-     * 2. POST: Inscribir a un atleta en una prueba específica
-     */
+    
     public function registrarAtleta(Request $request)
     {
         $user = $request->user();
 
-        // 1. Validaciones básicas
+        //  Validaciones básicas
         $validated = $request->validate([
             'id_competicion' => 'required|integer|exists:competiciones,id',
             'id_atleta' => 'required|integer|exists:atletas,id',
             'tipo_evento' => 'required|string',
         ]);
 
-        // === NUEVA VALIDACIÓN: ESTADO DE LA COMPETICIÓN ===
+        // Validar estado de la competicion
         $competicion = Competition::find($validated['id_competicion']);
         if ($competicion->status !== 'Inscripcion') {
             return response()->json(['status' => 'ERROR', 'mensaje' => 'La competición no admite inscripciones (Cerrada o Finalizada).'], 422);
         }
-        // ==================================================
 
-        // 2. Seguridad: Verificar que el atleta pertenece al club logueado
+        // Seguridad: Verificar que el atleta pertenece al club logueado
         $atleta = Athlete::where('id', $validated['id_atleta'])
                     ->where('club_actual_id', $user->club->id)
                     ->first();
@@ -214,7 +201,7 @@ class CompetitionController extends Controller
             return response()->json(['status' => 'ERROR', 'mensaje' => 'El atleta no pertenece a tu club'], 403);
         }
 
-        // 3. Evitar duplicados
+        // Evitar duplicados
         $existe = AthleteRegistration::where('id_competicion', $validated['id_competicion'])
                     ->where('id_atleta', $validated['id_atleta'])
                     ->where('tipo_evento', $validated['tipo_evento'])
@@ -224,7 +211,7 @@ class CompetitionController extends Controller
             return response()->json(['status' => 'ERROR', 'mensaje' => 'El atleta ya está inscrito en esa prueba'], 409);
         }
 
-        // 4. Crear registro
+        // Crear registro
         $registro = AthleteRegistration::create([
             'id_competicion' => $validated['id_competicion'],
             'id_atleta' => $validated['id_atleta'],
@@ -241,9 +228,6 @@ class CompetitionController extends Controller
         ]);
     }
 
-    /**
-     * 3. DELETE: Quitar inscripción (Desapuntar)
-     */
     public function eliminarInscripcion(Request $request, $idRegistro)
     {
         $user = $request->user();
@@ -254,13 +238,11 @@ class CompetitionController extends Controller
             return response()->json(['status' => 'ERROR', 'mensaje' => 'Inscripción no encontrada'], 404);
         }
 
-        // === NUEVA VALIDACIÓN: ESTADO DE LA COMPETICIÓN ===
-        // Buscamos la competición asociada al registro para ver si está cerrada
+        // Validar estado de la competicion
         $competicion = Competition::find($registro->id_competicion);
         if ($competicion && $competicion->status !== 'Inscripcion') {
-             return response()->json(['status' => 'ERROR', 'mensaje' => 'No se puede borrar. La competición está cerrada.'], 422);
+            return response()->json(['status' => 'ERROR', 'mensaje' => 'No se puede borrar. La competición está cerrada.'], 422);
         }
-        // ==================================================
 
         if ($user->rol !== 'CLUB' || $registro->id_club !== $user->club->id) {
             return response()->json(['status' => 'ERROR', 'mensaje' => 'No autorizado'], 403);
@@ -270,6 +252,59 @@ class CompetitionController extends Controller
 
         return response()->json(['status' => 'SUCCESS', 'mensaje' => 'Inscripción eliminada correctamente']);
     }
+
+
+    public function downloadInscripcionExcel($competitionId)
+    {
+        if (!Competition::find($competitionId)) {
+            return $this->sendResponse(
+                'NO SUCCESS',
+                404,
+                'La competición no existe',
+                []
+            );
+        }
+
+        $inscripciones = AthleteRegistration::with(['athlete.club'])
+            ->where('id_competicion', $competitionId)
+            ->get();
+
+        if ($inscripciones->isEmpty()) {
+            return $this->sendResponse(
+                'NO SUCCESS',
+                404,
+                'No hay inscripciones para esta competicion',
+                []
+            );
+        }
+
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, "\xEF\xBB\xBF");
+        fputcsv($handle, ['Nombre', 'Club', 'Prueba', 'Fecha_inscripcion']);
+
+        foreach ($inscripciones as $res) {
+            $atleta = $res->athlete ? $res->athlete->nombre : '';
+            $club = ($res->athlete && $res->athlete->club) ? $res->athlete->club->name : '';
+            $fechaInsc = $res->fecha_inscripcion ? \Carbon\Carbon::parse($res->fecha_inscripcion)->format('d/m/y') : '';
+            fputcsv($handle, [
+                $atleta,
+                $club,
+                $res->tipo_evento,
+                $fechaInsc
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="inscripciones_competicion_' . $competitionId . '.csv"'
+        ]);
+    }
+        
+
 
     public function sendResponse($status, $cod, $mensaje, $data)
     {
