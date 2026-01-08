@@ -25,6 +25,7 @@ Route::get('/user', function (Request $request) {
 // ENDOPINT PUBLICOS -------------------------------------------
 
 Route::get('/competitions', [CompetitionController::class, 'getAll']);
+Route::get('/external-news', [NewsController::class, 'getExternalNews']);
 Route::get('/noticias', [NewsController::class, 'getAll']);
 Route::get('/results', [ResultsController::class, 'getAll']);
 
