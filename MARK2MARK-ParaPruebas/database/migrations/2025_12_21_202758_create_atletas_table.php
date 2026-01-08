@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('fecha_nacimiento')->nullable();
             $table->enum('status', ['Activo', 'Pendiente', 'Suspendido'])->default('Pendiente');
             $table->string('sexo', 1)->default('M');
+            $table->string('categoria', 50)->nullable();
 
             $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('set null');
             $table->foreign('club_actual_id')->references('id')->on('clubs')->onDelete('set null');
