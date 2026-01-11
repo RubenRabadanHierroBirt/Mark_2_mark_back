@@ -3,15 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log; 
-use Illuminate\Support\Facades\DB;
-
 use App\Models\Competition;
 use App\Models\Athlete; 
 use App\Models\AthleteRegistration; 
 use App\DTOs\Competition\CompetitionDTO;
 use App\Http\Requests\CreateCompetitionRequest;
 use App\Http\Requests\UpdateCompetitionRequest;
+use App\Http\Requests\RegistrarAtletaRequest;
 
 
 class CompetitionController extends Controller
@@ -140,6 +138,10 @@ class CompetitionController extends Controller
   public function getInscripcionData(Request $request, $competitionId)
     {
         $user = $request->user();
+        
+        if (!$user || !$user->club) {
+            return response()->json(['status' => 'ERROR', 'mensaje' => 'El usuario no tiene club asociado'], 404);
+        }
         $clubId = $user->club->id; // O $user->club_id según tu relación
 
         // Obtenemos los atletas del club (Activos)
@@ -175,16 +177,15 @@ class CompetitionController extends Controller
     }
 
     
-    public function registrarAtleta(Request $request)
+    public function registrarAtleta(RegistrarAtletaRequest $request)
     {
         $user = $request->user();
+        if (!$user || !$user->club) {
+            return response()->json(['status' => 'ERROR', 'mensaje' => 'El usuario no tiene club asociado'], 404);
+        }
 
         //  Validaciones básicas
-        $validated = $request->validate([
-            'id_competicion' => 'required|integer|exists:competiciones,id',
-            'id_atleta' => 'required|integer|exists:atletas,id',
-            'tipo_evento' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         // Validar estado de la competicion
         $competicion = Competition::find($validated['id_competicion']);
@@ -192,7 +193,7 @@ class CompetitionController extends Controller
             return response()->json(['status' => 'ERROR', 'mensaje' => 'La competición no admite inscripciones (Cerrada o Finalizada).'], 422);
         }
 
-        // Seguridad: Verificar que el atleta pertenece al club logueado
+        // Verificar que el atleta pertenece al club logueado
         $atleta = Athlete::where('id', $validated['id_atleta'])
                     ->where('club_actual_id', $user->club->id)
                     ->first();
@@ -231,6 +232,9 @@ class CompetitionController extends Controller
     public function eliminarInscripcion(Request $request, $idRegistro)
     {
         $user = $request->user();
+        if (!$user || !$user->club) {
+            return response()->json(['status' => 'ERROR', 'mensaje' => 'El usuario no tiene club asociado'], 404);
+        }
         
         $registro = AthleteRegistration::find($idRegistro);
 
