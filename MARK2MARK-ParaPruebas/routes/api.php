@@ -110,24 +110,24 @@ Route::middleware(['auth:sanctum', 'role:ATLETA,CLUB,FEDERACION'])->group(functi
 
 // REPASAR ----------------------------------
 
-Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);//
+// Route::get('/atleta/dashboard/resultados/excel', [AthleteController::class, 'downloadUltimosResultadosExcel']);//
 
-Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);//
+// Route::get('admin/atletas/{id}', [AthleteController::class, 'getById']);//
 
-Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);//
+// Route::get('admin/clubes/{id}', [ClubController::class, 'getById']);//
 
-Route::get('/admin/competitions/{id}', [CompetitionController::class, 'getById']);//
+// Route::get('/admin/competitions/{id}', [CompetitionController::class, 'getById']);//
 
-Route::get('/noticias/{id}', [NewsController::class, 'getById']);//
-Route::get('/admin/noticias', [NewsController::class, 'getAll']);//
-Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
+// Route::get('/noticias/{id}', [NewsController::class, 'getById']);//
+// Route::get('/admin/noticias', [NewsController::class, 'getAll']);//
+// Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
 
-Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);//
+// Route::get('/calendar/competitions', [CompetitionController::class, 'calendar']);//
 
-Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);//
+// Route::get('/admin/report/{tipo}', [ReportController::class, 'download']);//
 
 
-Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // 
+// Route::get('/results/athlete/{id}', [ResultsController::class, 'getByAthlete']); // 
 
 // // ENDPOINT PRUEBA PING
 // Route::get('/ping', function () {
