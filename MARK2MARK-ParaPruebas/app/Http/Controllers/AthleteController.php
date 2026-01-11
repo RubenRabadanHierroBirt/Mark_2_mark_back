@@ -298,7 +298,7 @@ class AthleteController extends Controller
             ->get()
             ->filter(function ($reg) {
                 // Filtra solo si la competición existe y la fecha es FUTURA (o hoy)
-                return $reg->competition && $reg->competition->fecha >= now();
+                return $reg->competition && $reg->competition->fecha >= Carbon::today();
             })
             ->sortBy(function ($reg) {
                 // Ordena por fecha: la más cercana primero
@@ -331,8 +331,10 @@ class AthleteController extends Controller
             }),
             // Formatear Próximos usando tu DTO existente
             'proximos_campeonatos' => $proximosCampeonatos->values()->map(function ($reg) {
-                //return \App\DTOs\Competition\CompetitionDTO::fromModel($reg->competition);
-                return new \App\DTOs\Competition\CompetitionDTO($reg->competition);
+                return [
+                    'competition' => new \App\DTOs\Competition\CompetitionDTO($reg->competition),
+                    'tipo_evento' => $reg->tipo_evento,
+                ];
             })
         ];
 

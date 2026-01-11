@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use App\DTOs\Club\ClubDTO;
 use App\DTOs\Club\ClubDashboardDTO;
+use App\Models\Athlete;
 use App\Models\AthleteRegistration;
 use App\Models\Competition;
 use App\Models\Club;
@@ -44,10 +44,8 @@ class ClubController extends Controller
         $clubId = $club->id;
 
         // 2. Buscamos los IDs de los atletas que están AHORA en este club
-        $idsAtletasDelClub = DB::table('atleta_club')
-            ->where('id_club', $clubId)
-            ->whereNull('fecha_fin')
-            ->pluck('id_atleta');
+        $idsAtletasDelClub = Athlete::where('club_actual_id', $clubId)
+            ->pluck('id');
 
         // 3. Buscamos Competiciones donde los atletas del club estan inscritos
         $inscripciones = AthleteRegistration::whereIn('id_atleta', $idsAtletasDelClub)
@@ -251,3 +249,5 @@ class ClubController extends Controller
         ], $cod);
     }
 }
+
+
