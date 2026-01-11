@@ -69,6 +69,7 @@ Route::middleware(['auth:sanctum', 'role:FEDERACION'])->group(function () {
     Route::post('/admin/competitions', [CompetitionController::class, 'create']);
     Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
     Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
+    Route::get('/admin/inscripcion/excel/{id}', [CompetitionController::class, 'downloadInscripcionExcel']);
     
     Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
     Route::post('/admin/noticias', [NewsController::class, 'create']);//
@@ -104,9 +105,6 @@ Route::middleware(['auth:sanctum', 'role:ATLETA,CLUB,FEDERACION'])->group(functi
 
         Route::get('/results/competition/{id}/excel', [ResultsController::class, 'downloadByCompetitionExcel']);
 });
-
-
-
 
 
 
