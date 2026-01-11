@@ -68,8 +68,8 @@ Route::middleware(['auth:sanctum', 'role:FEDERACION'])->group(function () {
     Route::delete('admin/clubes/{id}', [ClubController::class, 'delete']);
     
     Route::post('/admin/competitions', [CompetitionController::class, 'create']);
-    //Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
-    //Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
+    Route::put('/admin/competitions/{id}', [CompetitionController::class, 'update']);
+    Route::delete('/admin/competitions/{id}', [CompetitionController::class, 'delete']);
     Route::get('/admin/inscripcion/excel/{id}', [CompetitionController::class, 'downloadInscripcionExcel']);
     
     //Route::get('/admin/noticias/{id}', [NewsController::class, 'getById']);//
