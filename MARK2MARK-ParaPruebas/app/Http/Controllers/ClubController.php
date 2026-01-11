@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App\DTOs\Club\ClubDTO;
 use App\DTOs\Club\ClubDashboardDTO;
 use App\Models\Athlete;
 use App\Models\AthleteRegistration;
 use App\Models\Competition;
 use App\Models\Club;
+use App\Models\User;
 use App\Http\Requests\CreateClubRequest;
 use App\Http\Requests\UpdateClubRequest;
 use Illuminate\Http\Request;
@@ -79,14 +82,56 @@ class ClubController extends Controller
 
     public function create(CreateClubRequest $request)
     {
-        // VALIDACIÓN
-        $club = Club::create($request->all());
+        $data = $request->validated();
+        $userId = $data['id_usuario'] ?? null;
+        $data['estado'] = $data['estado'] ?? 'Pendiente';
 
-        if ($club) {
-            return $this->sendResponse('SUCCESS', 201, 'Elemento creado correctamente', new ClubDTO($club));
-        } else {
+        return DB::transaction(function () use ($data, $request, $userId) {
+            if (!$userId) {
+                $username = $request->input('username') ?? $request->input('usuario');
+                $emailUsuario = $data['email'] ?? null;
+
+                if (!$username) {
+                    $base = '';
+                    if ($emailUsuario && str_contains($emailUsuario, '@')) {
+                        $base = explode('@', $emailUsuario)[0];
+                    }
+                    if (!$base) {
+                        $base = $data['code'] ?? 'club';
+                    }
+                    $slug = Str::slug($base);
+                    $username = $slug ?: 'club';
+                }
+
+                $original = $username;
+                $suffix = 1;
+                while (User::where('username', $username)->exists()) {
+                    $username = $original . $suffix;
+                    $suffix++;
+                }
+
+                $password = $request->input('password') ?? Str::random(10);
+
+                $user = User::create([
+                    'username' => $username,
+                    'email' => $emailUsuario,
+                    'password' => $password,
+                    'rol' => 'CLUB',
+                ]);
+
+                $userId = $user->id;
+                $data['id_usuario'] = $userId;
+            }
+
+            $club = Club::create($data);
+
+            if ($club) {
+                $club->load('user');
+                return $this->sendResponse('SUCCESS', 201, 'Elemento creado correctamente', new ClubDTO($club));
+            }
+
             return $this->sendResponse('NO SUCCESS', 500, 'Error al crear el elemento', null);
-        }
+        });
     }
 
     public function getById(string $id)
