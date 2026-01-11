@@ -16,15 +16,9 @@ class CreateClubRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_usuario' => 'nullable|exists:usuarios,id',
-            'code' => 'required|string|max:20|unique:clubs,code',
-            'name' => 'required|string|max:100',
-            'direccion' => 'nullable|string|max:100',
-            'telefono' => 'nullable|string|max:20',
-            'responsable' => 'nullable|string|max:100',
-            'estado' => 'nullable|in:Activo,Pendiente,Suspendido',
-            'codigo_postal' => 'nullable|integer',
-            'localidad' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:clubs,email',
+            'code' => 'required|unique:clubs,code',
         ];
     }
 }

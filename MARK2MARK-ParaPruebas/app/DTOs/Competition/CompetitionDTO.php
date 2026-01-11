@@ -31,36 +31,14 @@ class CompetitionDTO implements JsonSerializable
 
         $this->fecha = $competition->fecha
             ? Carbon::parse($competition->fecha)->format('d/m/y')
-            : ''; // He puesto string vacía por defecto si es null para evitar errores en front
+            : ''; 
 
         $this->revisado_federacion = (bool) $competition->revisado_federacion;
 
-        // === ASIGNACIÓN DE CONTADORES ===
-        // Intentamos leer la propiedad dinámica. Si no existe, ponemos 0.
         $this->total_atletas = $competition->total_atletas ?? 0;
         $this->total_clubes = $competition->total_clubes ?? 0;
     }
 
-
-    ////////////////////// DTO HECHO POR KEIDY, MODIFICO POR CONSISTENCIA. GUARDO POR TENER BACKUP POR QUE SE USO MÉTODO EN EL ATHLETECONTROLLER
-    // /**
-    //  * Convierte el modelo de la Base de Datos al formato del DTO
-    //  */
-    // public static function fromModel($competition): self
-    // {
-    //     return new self(
-    //         id: $competition->id,
-
-    //         // Mapeo directo de nombres (BD -> DTO)
-    //         name: $competition->name,
-
-    //         // Si la sede es NULL en la BD, mostramos un texto por defecto
-    //         sede: $competition->sede ?? 'Ubicación por definir',
-
-    //         // Usamos la columna 'fecha' (que es NOT NULL) para mostrar el día principal
-    //         fecha: Carbon::parse($competition->fecha)->format('d/m/y')
-    //     );
-    // }
 
 
     public function jsonSerialize(): mixed

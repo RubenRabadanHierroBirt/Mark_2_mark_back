@@ -15,6 +15,8 @@ public function getAll()
 {
     $results = Results::with(['competition', 'athlete.club'])->get();
 
+    // Para obtener la mejor marca de cada atleta, tenemos que diferenciar las pruebas en las que la mejor sea el valor más bajo 
+    // del campo marca (pruebas basadas en tiempo) y las que la mejor marca el la mayor (pruebas basadas en distancia)
     $timeBasedEvents = [
         '60m', '100m', '200m', '400m',
         '800m', '1500m', '5000m', '10000m',
@@ -27,14 +29,14 @@ public function getAll()
 
             $tipoEvento = $group->first()->tipo_evento;
 
-            // AquÃ­ van las carreras, el mejor registro es el menor, podemos cambiar la pruebas del array de arriba. Los he cambiado en la BBDD y los dejo asÃ­
+            // Aquí­ van las carreras, el mejor registro es el menor, podemos cambiar la pruebas del array de arriba. Los he cambiado en la BBDD y los dejo así
             if (in_array($tipoEvento, $timeBasedEvents)) {
                 return $group
                     ->sortBy(fn ($r) => (float) $r->marca)
                     ->first();
             }
 
-            // AquÃ­ van el resto de pruebas, los concursos. El mejor registro es el mayor
+            // Aquí­ van el resto de pruebas, los concursos. El mejor registro es el mayor
             return $group
                 ->sortByDesc(fn ($r) => (float) $r->marca)
                 ->first();
@@ -50,32 +52,12 @@ public function getAll()
     return $this->sendResponse(
         'SUCCESS',
         200,
-        'ClasificaciÃ³n obtenida correctamente',
+        'Clasificación obtenida correctamente',
         $dtos
     );
 }
 
 
-    // Obtener todos los resultados (Transformados a DTO)
-    public function getAllRaw()
-    {
-        // Cargamos las relaciones para que el DTO tenga datos de atleta y competiciÃ³n
-        $results = Results::with(['competition', 'athlete.club'])->get();
-
-        // Usamos map para transformar la colecciÃ³n entera
-        $dtos = $results->map(function ($result) {
-            return new ResultsDTO($result);
-        });
-
-        return $this->sendResponse(
-            'SUCCESS',
-            200,
-            'Resultados obtenidos correctamente',
-            $dtos
-        );
-    }
-
-    // Obtener por ID
     public function getById($id)
     {
         $result = Results::with(['competition', 'athlete.club'])->find($id);
@@ -92,7 +74,6 @@ public function getAll()
         );
     }
 
-    // Obtener por Atleta
     public function getByAthlete($athleteId)
     {
         $results = Results::with(['competition', 'athlete.club'])
@@ -111,7 +92,6 @@ public function getAll()
         );
     }
 
-    // Crear Resultado
     public function create(CreateResultsRequest $request)
     {
         $result = Results::create($request->validated());
@@ -127,7 +107,6 @@ public function getAll()
         );
     }
 
-    // Actualizar Resultado
     public function update(UpdateResultsRequest $request, $id)
     {
         $result = Results::find($id);
@@ -149,7 +128,6 @@ public function getAll()
         );
     }
 
-    // Eliminar Resultado
     public function delete($id)
     {
         $result = Results::find($id);
@@ -164,11 +142,10 @@ public function getAll()
             'SUCCESS',
             200,
             'Resultado eliminado correctamente',
-            new ResultsDTO($result) // Devolvemos lo que se borrÃ³ (opcional)
+            new ResultsDTO($result)
         );
     }
 
-    // Respuesta EstÃ¡ndar
     public function downloadByCompetitionExcel($competitionId)
     {
         $results = Results::with(['competition', 'athlete.club'])

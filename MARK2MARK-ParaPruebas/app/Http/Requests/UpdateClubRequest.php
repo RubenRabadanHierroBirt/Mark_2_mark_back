@@ -15,15 +15,11 @@ class UpdateClubRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_usuario' => 'sometimes|nullable|exists:usuarios,id',
-            'code' => 'sometimes|string|max:20|unique:clubs,code,' . $this->route('id'),
-            'name' => 'sometimes|string|max:100',
-            'direccion' => 'sometimes|nullable|string|max:100',
-            'telefono' => 'sometimes|nullable|string|max:20',
-            'responsable' => 'sometimes|nullable|string|max:100',
-            'estado' => 'sometimes|nullable|in:Activo,Pendiente,Suspendido',
-            'codigo_postal' => 'sometimes|nullable|integer',
-            'localidad' => 'sometimes|nullable|string|max:255',
+            'nombre' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'telefono' => 'nullable|string',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'estado' => 'sometimes|in:Activo,Pendiente,Suspendido',
         ];
     }
 }

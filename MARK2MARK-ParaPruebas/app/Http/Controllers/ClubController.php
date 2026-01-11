@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator;
 use App\DTOs\Club\ClubDTO;
 use App\DTOs\Club\ClubDashboardDTO;
 use App\Models\Athlete;
 use App\Models\AthleteRegistration;
 use App\Models\Competition;
 use App\Models\Club;
+use App\Http\Requests\CreateClubRequest;
+use App\Http\Requests\UpdateClubRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -18,19 +19,14 @@ class ClubController extends Controller
 {
     public function getDashboard(Request $request)
     {
-
-        // 1. OBTENER EL CLUB DEL USUARIO LOGUEADO
         $user = Auth::user();
         if (!$user) {
             return $this->sendResponse('NO SUCCESS', 401, 'Usuario no autenticado', null);
         }
 
-        // Si el usuario es admin, quizás quieras pasar un ID, pero por defecto cogemos su club
         $club = $user->club;
 
-        // Si no tiene club asociado (ej: es un usuario nuevo o admin sin club)
         if (!$club) {
-            // Fallback para pruebas: Si envías ?club_id=1 en la URL lo usa, si no, error.
             $clubId = $request->query('club_id');
             if ($clubId) {
                 $club = Club::find($clubId);
@@ -43,11 +39,11 @@ class ClubController extends Controller
 
         $clubId = $club->id;
 
-        // 2. Buscamos los IDs de los atletas que están AHORA en este club
+        // Buscamos los IDs de los atletas que pertenecen al club
         $idsAtletasDelClub = Athlete::where('club_actual_id', $clubId)
             ->pluck('id');
 
-        // 3. Buscamos Competiciones donde los atletas del club estan inscritos
+        // Buscamos Competiciones donde los atletas del club estan inscritos
         $inscripciones = AthleteRegistration::whereIn('id_atleta', $idsAtletasDelClub)
             ->with(['athlete', 'competition'])
             ->get();
@@ -59,18 +55,16 @@ class ClubController extends Controller
             ->values()
             ->take(3);
 
-        // 4. Buscamos Próximas Competiciones
+        // Buscamos Próximas Competiciones
         $proximas = Competition::where('fecha', '>=', Carbon::now())
             ->orderBy('fecha', 'asc')
             ->take(3)
             ->get();
 
-        // 5. Usamos el DTO
         $dto = new ClubDashboardDTO($club, $competicionesRecientes, $proximas);
 
         return $this->sendResponse('SUCCESS', 200, 'Dashboard cargado', $dto);
     }
-    // FALTAN CREAR LAS VALIDACIONES PARA CREATE Y UPDATE, COMPROBAR SI FUNCIONAN LAS DE ATHLETE CON LA BBDD Y AÑADIRLAS AQUI
     public function getAll()
     {
         $clubs = Club::with('user')->get();
@@ -83,19 +77,9 @@ class ClubController extends Controller
         return $this->sendResponse('SUCCESS', 200, 'Contenido mostrado correctamente', $dtosClubs);
     }
 
-    public function create(Request $request)
+    public function create(CreateClubRequest $request)
     {
         // VALIDACIÓN
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:clubs,email',
-            'code' => 'required|unique:clubs,code'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->sendResponse('NO SUCCESS', 400, $validator->errors()->first(), null);
-        }
-
         $club = Club::create($request->all());
 
         if ($club) {
@@ -126,7 +110,7 @@ class ClubController extends Controller
         }
     }
 
-    public function update(Request $request, string $id)
+    public function update(UpdateClubRequest $request, string $id)
     {
         $club = Club::with('user')->find($id);
 
@@ -135,18 +119,6 @@ class ClubController extends Controller
         }
 
         // 1. Validar (Aceptamos 'nombre' del front y 'avatar' imagen)
-        $validator = Validator::make($request->all(), [
-            'nombre'      => 'required|string|max:255',
-            'email'       => 'required|email|max:255',
-            'telefono'    => 'nullable|string',
-            'avatar'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'estado'      => 'sometimes|in:Activo,Pendiente,Suspendido'
-        ]);
-
-        if ($validator->fails()) {
-            return $this->sendResponse('NO SUCCESS', 400, $validator->errors()->first(), null);
-        }
-
         // 2. Actualizar datos de TEXTO (Mapeo manual)
         $club->name = $request->input('nombre'); // Front envía 'nombre', BD guarda 'name'
         $club->email = $request->input('email');
@@ -249,5 +221,3 @@ class ClubController extends Controller
         ], $cod);
     }
 }
-
-
