@@ -35,17 +35,11 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Relación con Athlete
-     */
     public function athlete()
     {
         return $this->hasOne(Athlete::class, 'id_usuario');
     }
 
-    /**
-     * Relación con Club
-     */
     public function club()
     {
         return $this->hasOne(Club::class, 'id_usuario');

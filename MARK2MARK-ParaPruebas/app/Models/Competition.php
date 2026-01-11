@@ -25,14 +25,13 @@ class Competition extends Model
         // 'fecha_inicio',
         // 'fecha_fin',
         'revisado_federacion',
-        //'creado_el'
+
     ];
 
     
     protected $casts = [
         'fecha' => 'date',
         'revisado_federacion' => 'boolean',
-        //'creado_el' => 'datetime'
     ];
 
     
@@ -40,13 +39,6 @@ class Competition extends Model
     {
         return $this->hasMany(AthleteRegistration::class, 'id_competicion');
     }
-
-    /*
-    public function clubRegistrations()
-    {
-        return $this->hasMany(ClubRegistration::class, 'id_competicion');
-    }
-    */
     
     public function results()
     {

@@ -39,15 +39,4 @@ class Club extends Model
         return $this->hasMany(Athlete::class, 'club_actual_id');
     }
 
-    /*
-    public function atletasHistorico()
-    {
-        return $this->belongsToMany(
-            Athlete::class,
-            'atleta_club',
-            'id_club',
-            'id_atleta'
-        )->withPivot(['fecha_inicio', 'fecha_fin']);
-    }
-        */
 }

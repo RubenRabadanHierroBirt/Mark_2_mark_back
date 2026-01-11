@@ -135,14 +135,14 @@ class CompetitionController extends Controller
     }
 
     
-  public function getInscripcionData(Request $request, $competitionId)
+    public function getInscripcionData(Request $request, $competitionId)
     {
         $user = $request->user();
         
         if (!$user || !$user->club) {
             return response()->json(['status' => 'ERROR', 'mensaje' => 'El usuario no tiene club asociado'], 404);
         }
-        $clubId = $user->club->id; // O $user->club_id según tu relación
+        $clubId = $user->club->id;
 
         // Obtenemos los atletas del club (Activos)
         $misAtletas = Athlete::where('club_actual_id', $clubId)
@@ -152,7 +152,6 @@ class CompetitionController extends Controller
         // Mapeamos para añadir la info de inscripciones
         $data = $misAtletas->map(function ($atleta) use ($competitionId) {
             
-            // Buscamos si este atleta tiene registros EN ESTA competición
             $inscripciones = AthleteRegistration::where('id_atleta', $atleta->id)
                                 ->where('id_competicion', $competitionId)
                                 ->get();
@@ -163,7 +162,7 @@ class CompetitionController extends Controller
                 'sexo' => $atleta->sexo,
                 'esta_inscrito' => $inscripciones->isNotEmpty(),
                 
-                // Devolvemos la lista de pruebas donde está apuntado (ej: 100m, Peso...)
+                // Devolvemos la lista de pruebas donde está apuntado
                 'inscripciones' => $inscripciones->map(function($inscripcion) {
                     return [
                         'id_registro' => $inscripcion->id,
@@ -173,7 +172,7 @@ class CompetitionController extends Controller
             ];
         });
 
-        return response()->json(['data' => $data]);
+        return $this->sendResponse('SUCCESS', 200, 'Contenido mostrado correctamente', $data);
     }
 
     
@@ -184,13 +183,13 @@ class CompetitionController extends Controller
             return response()->json(['status' => 'ERROR', 'mensaje' => 'El usuario no tiene club asociado'], 404);
         }
 
-        //  Validaciones básicas
+        // Validaciones básicas
         $validated = $request->validated();
 
         // Validar estado de la competicion
         $competicion = Competition::find($validated['id_competicion']);
         if ($competicion->status !== 'Inscripcion') {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'La competición no admite inscripciones (Cerrada o Finalizada).'], 422);
+            return $this->sendResponse('NO SUCCESS', 422, 'La competición no admite inscripciones (Cerrada o Finalizada).', null);
         }
 
         // Verificar que el atleta pertenece al club logueado
@@ -199,7 +198,7 @@ class CompetitionController extends Controller
                     ->first();
 
         if (!$atleta) {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'El atleta no pertenece a tu club'], 403);
+            return $this->sendResponse('NO SUCCESS', 403, 'El atleta no pertenece a tu club', null);
         }
 
         // Evitar duplicados
@@ -209,7 +208,7 @@ class CompetitionController extends Controller
                     ->exists();
 
         if ($existe) {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'El atleta ya está inscrito en esa prueba'], 409);
+            return $this->sendResponse('NO SUCCESS', 409, 'El atleta ya está inscrito en esa prueba', null);
         }
 
         // Crear registro
@@ -222,11 +221,7 @@ class CompetitionController extends Controller
             'dorsal' => null 
         ]);
 
-        return response()->json([
-            'status' => 'SUCCESS',
-            'mensaje' => 'Inscripción realizada',
-            'data' => $registro
-        ]);
+        return $this->sendResponse('SUCCESS', 200, 'Inscripción realizada', $registro);
     }
 
     public function eliminarInscripcion(Request $request, $idRegistro)
@@ -239,22 +234,22 @@ class CompetitionController extends Controller
         $registro = AthleteRegistration::find($idRegistro);
 
         if (!$registro) {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'Inscripción no encontrada'], 404);
+            return $this->sendResponse('NO SUCCESS', 404, 'Inscripción no encontrada', null);
         }
 
         // Validar estado de la competicion
         $competicion = Competition::find($registro->id_competicion);
         if ($competicion && $competicion->status !== 'Inscripcion') {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'No se puede borrar. La competición está cerrada.'], 422);
+            return $this->sendResponse('NO SUCCESS', 422, 'No se puede borrar. La competición está cerrada.', null);
         }
 
         if ($user->rol !== 'CLUB' || $registro->id_club !== $user->club->id) {
-            return response()->json(['status' => 'ERROR', 'mensaje' => 'No autorizado'], 403);
+            return $this->sendResponse('NO SUCCESS', 403, 'No autorizado', null);
         }
 
         $registro->delete();
 
-        return response()->json(['status' => 'SUCCESS', 'mensaje' => 'Inscripción eliminada correctamente']);
+        return $this->sendResponse('SUCCESS', 200, 'Inscripción eliminada correctamente', null);
     }
 
 

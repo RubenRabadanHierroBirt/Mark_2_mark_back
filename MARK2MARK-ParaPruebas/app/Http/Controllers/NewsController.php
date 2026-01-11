@@ -28,7 +28,7 @@ class NewsController extends Controller
         );
     }
     
-     public function getExternalNews(Request $request)
+    public function getExternalNews(Request $request)
     {
         $envKey = env('NEWS_API_KEY', '');
         $apiKey = $envKey !== '' ? $envKey : (string) $request->query('apiKey', '');
