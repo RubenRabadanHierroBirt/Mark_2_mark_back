@@ -30,12 +30,20 @@ class NewsController extends Controller
     
      public function getExternalNews(Request $request)
     {
-        $response = Http::get('https://newsapi.org/v2/everything', [
-            'q' => 'atletismo OR "track and field"',
-            'language' => 'es',
+        $envKey = env('NEWS_API_KEY', '');
+        $apiKey = $envKey !== '' ? $envKey : (string) $request->query('apiKey', '');
+        $baseUrl = (string) $request->query('baseUrl', env('NEWS_API_BASE_URL', 'https://newsapi.org/v2/everything'));
+        $query = (string) $request->query('query', env('NEWS_API_QUERY', 'atletismo OR "track and field"'));
+        $language = (string) $request->query('language', env('NEWS_API_LANGUAGE', 'es'));
+        $pageSize = (int) $request->query('pageSize', env('NEWS_API_PAGE_SIZE', 9));
+        $pageSize = max(1, min(20, $pageSize));
+
+        $response = Http::get($baseUrl, [
+            'q' => $query,
+            'language' => $language,
             'sortBy' => 'publishedAt',
-            'pageSize' => 9,
-            'apiKey' => '7a5e194ce574446b9c1418fb792d0f37',
+            'pageSize' => $pageSize,
+            'apiKey' => $apiKey,
         ]);
 
         return response()->json($response->json(), $response->status());
